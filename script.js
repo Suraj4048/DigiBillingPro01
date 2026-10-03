@@ -3,7 +3,7 @@ function safeGet(k){try{return JSON.parse(localStorage.getItem(k))||[]}catch(e){
 function safeSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 
 // --- STATE ---
-var DB={parties:safeGet('bp_parties'),items:safeGet('bp_items'),invoices:safeGet('bp_invoices'),quotations:safeGet('bp_quotations'),templates:safeGet('bp_templates'),purchases:safeGet('bp_purchases'),payments:safeGet('bp_payments'),settings:safeGet('bp_settings')||{compName:'',compMobile:'',compEmail:'',compGst:'',compWeb:'',compSocial:'',bankName:'',bankAcc:'',bankIfsc:'',bankBranch:'',logo:'',terms:'',notes:'',signature:''}};
+var DB={parties:safeGet('bp_parties'),items:safeGet('bp_items'),invoices:safeGet('bp_invoices'),quotations:safeGet('bp_quotations'),templates:safeGet('bp_templates'),purchases:safeGet('bp_purchases'),payments:safeGet('bp_payments'),settings:safeGet('bp_settings')||{compName:'',compMobile:'',compEmail:'',compGst:'',compWeb:'',compSocial:'',bankName:'',bankAcc:'',bankIfsc:'',bankBranch:'',logo:'',terms:'',notes:'',signature:''},users:safeGet('bp_users')};
 var currentDocType='invoice',currentDocItems=[],currentDocAdvances=[],currentDiscount=0,editingId=null,currentLedgerParty=null,editingItemId=null,continueToDoc=0,exploreContext=null,currentScreenBase64='',editingInvoiceId=null;
 
 var $=function(id){return document.getElementById(id)};
@@ -53,44 +53,190 @@ function refreshUI() {
     }
 }
 
-// --- AUTH ---
+// --- AUTH SYSTEM (LOGIN + SIGN UP) ---
 window.addEventListener('DOMContentLoaded', function() {
-    // Check if elements exist before adding listeners
-    if($('btnLogin')) {
-        $('btnLogin').onclick = function() {
-            var emailVal = $('logEmail') ? $('logEmail').value : '';
-            var passVal = $('logPass') ? $('logPass').value : '';
-            
-            if(emailVal === 'surajanandpbh@gmail.com' && passVal === ':@Suraj4048') {
-                localStorage.setItem('dbp_logged_in', 'true');
-                if($('authScreen')) $('authScreen').style.display = 'none';
-                if($('appLayout')) $('appLayout').style.display = 'flex';
-                initApp();
-                toast('Login Successful! Redirecting...');
-                // Force reload to ensure UI updates correctly on hosted sites
-                setTimeout(function(){ location.reload(); }, 500);
-            } else {
-                toast('Invalid Username or Password', 'error');
+    console.log("🚀 Digi Billing Pro Loaded - New Version with Sign Up!");
+    
+    // Initialize Auth Screen
+    initAuthScreen();
+    
+    // Check if already logged in
+    var currentUser = localStorage.getItem('dbp_current_user');
+    if(currentUser) {
+        var users = DB.users || [];
+        var userFound = false;
+        for(var i=0; i<users.length; i++) {
+            if(users[i].email === currentUser) {
+                userFound = true;
+                break;
             }
-        };
-    }
-
-    if($('btnLogout')) {
-        $('btnLogout').onclick = function() {
-            if(confirm('Are you sure you want to logout?')) {
-                localStorage.removeItem('dbp_logged_in');
-                location.reload();
-            }
-        };
-    }
-
-    // Auto-login check
-    if(localStorage.getItem('dbp_logged_in') === 'true') {
-        if($('authScreen')) $('authScreen').style.display = 'none';
-        if($('appLayout')) $('appLayout').style.display = 'flex';
-        initApp();
+        }
+        if(userFound) {
+            showApp();
+            initApp();
+        } else {
+            localStorage.removeItem('dbp_current_user');
+        }
     }
 });
+
+function initAuthScreen() {
+    // Create Sign Up form dynamically if not exists
+    if(!$('signupForm')) {
+        var authScreen = $('authScreen');
+        if(authScreen) {
+            var signupHTML = `
+                <div id="signupForm" style="display:none;">
+                    <h2 style="color:var(--primary);margin-bottom:1.5rem;">📝 Create Account</h2>
+                    <div class="form-group"><label>Email *</label><input type="email" id="signupEmail" class="form-control" placeholder="your@email.com"></div>
+                    <div class="form-group"><label>Password *</label><input type="password" id="signupPass" class="form-control" placeholder="Min 6 characters"></div>
+                    <div class="form-group"><label>Confirm Password *</label><input type="password" id="signupConfirmPass" class="form-control" placeholder="Re-enter password"></div>
+                    <div class="form-group">
+                        <label>Security Question *</label>
+                        <select id="signupSecurityQ" class="form-control">
+                            <option value="">-- Select Question --</option>
+                            <option value="pet">What is your pet's name?</option>
+                            <option value="school">What was your first school name?</option>
+                            <option value="city">What is your birth city?</option>
+                            <option value="mother">What is your mother's maiden name?</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>Security Answer *</label><input type="text" id="signupSecurityA" class="form-control" placeholder="Your answer"></div>
+                    <button type="button" class="btn btn-success btn-block" id="btnSignup" style="margin-top:1rem;padding:1rem;">Create Account</button>
+                    <p style="margin-top:1rem;text-align:center;">Already have an account? <a href="#" id="showLogin" style="color:var(--primary);text-decoration:underline;">Login here</a></p>
+                </div>
+            `;
+            authScreen.innerHTML += signupHTML;
+            
+            // Add event listeners
+            if($('showLogin')) {
+                $('showLogin').onclick = function(e) {
+                    e.preventDefault();
+                    $('signupForm').style.display = 'none';
+                    $('loginForm').style.display = 'block';
+                };
+            }
+            
+            if($('btnSignup')) {
+                $('btnSignup').onclick = handleSignup;
+            }
+        }
+    }
+    
+    // Login button handler
+    if($('btnLogin')) {
+        $('btnLogin').onclick = handleLogin;
+    }
+    
+    // Show login form by default
+    if($('loginForm')) $('loginForm').style.display = 'block';
+    if($('signupForm')) $('signupForm').style.display = 'none';
+}
+
+function handleLogin() {
+    var emailVal = $('logEmail') ? $('logEmail').value.trim() : '';
+    var passVal = $('logPass') ? $('logPass').value : '';
+    
+    if(!emailVal || !passVal) {
+        toast('Please enter email and password', 'error');
+        return;
+    }
+    
+    var users = DB.users || [];
+    var userFound = false;
+    
+    for(var i=0; i<users.length; i++) {
+        if(users[i].email === emailVal && users[i].password === passVal) {
+            userFound = true;
+            break;
+        }
+    }
+    
+    // Also allow default admin login for testing
+    if(emailVal === 'surajanandpbh@gmail.com' && passVal === ':@Suraj4048') {
+        userFound = true;
+    }
+    
+    if(userFound) {
+        localStorage.setItem('dbp_current_user', emailVal);
+        toast('Login Successful! Redirecting...');
+        setTimeout(function(){ 
+            showApp(); 
+            initApp(); 
+        }, 500);
+    } else {
+        toast('Invalid Email or Password', 'error');
+    }
+}
+
+function handleSignup() {
+    var email = $('signupEmail').value.trim();
+    var pass = $('signupPass').value;
+    var confirmPass = $('signupConfirmPass').value;
+    var securityQ = $('signupSecurityQ').value;
+    var securityA = $('signupSecurityA').value.trim();
+    
+    // Validation
+    if(!email || !pass || !confirmPass || !securityQ || !securityA) {
+        toast('Please fill all fields', 'error');
+        return;
+    }
+    
+    if(pass.length < 6) {
+        toast('Password must be at least 6 characters', 'error');
+        return;
+    }
+    
+    if(pass !== confirmPass) {
+        toast('Passwords do not match', 'error');
+        return;
+    }
+    
+    if(!email.includes('@') || !email.includes('.')) {
+        toast('Please enter a valid email address', 'error');
+        return;
+    }
+    
+    // Check if user already exists
+    var users = DB.users || [];
+    for(var i=0; i<users.length; i++) {
+        if(users[i].email === email) {
+            toast('User already exists with this email', 'error');
+            return;
+        }
+    }
+    
+    // Create new user
+    var newUser = {
+        email: email,
+        password: pass,
+        securityQuestion: securityQ,
+        securityAnswer: securityA,
+        createdDate: today()
+    };
+    
+    users.push(newUser);
+    DB.users = users;
+    safeSet('bp_users', users);
+    
+    toast('Account created successfully! Please login.', 'success');
+    
+    // Switch to login form
+    $('signupForm').style.display = 'none';
+    $('loginForm').style.display = 'block';
+    
+    // Clear signup form
+    $('signupEmail').value = '';
+    $('signupPass').value = '';
+    $('signupConfirmPass').value = '';
+    $('signupSecurityQ').value = '';
+    $('signupSecurityA').value = '';
+}
+
+function showApp() {
+    if($('authScreen')) $('authScreen').style.display = 'none';
+    if($('appLayout')) $('appLayout').style.display = 'flex';
+}
 
 // --- NAVIGATION ---
 function setupNavigation() {
@@ -113,6 +259,16 @@ function setupNavigation() {
     if($('backBtn')) $('backBtn').onclick = function(){if($('sidebar'))$('sidebar').classList.remove('open');navigateTo('dashboard')};
     var closeBtns=document.querySelectorAll('[data-close]');
     for(var m=0;m<closeBtns.length;m++){closeBtns[m].onclick=function(){closeModal(this.getAttribute('data-close'))}}
+    
+    // Logout button
+    if($('btnLogout')) {
+        $('btnLogout').onclick = function() {
+            if(confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('dbp_current_user');
+                location.reload();
+            }
+        };
+    }
 }
 
 function navigateTo(targetId){
@@ -158,10 +314,10 @@ function renderAllTables(){
     if(itb) itb.innerHTML=DB.items.length?DB.items.map(function(item){return '<tr><td>'+item.name+'</td><td>'+fmt(item.price)+'</td><td>'+item.stock+'</td><td>'+item.gst+'%</td><td><button class="btn btn-outline btn-sm btn-edit-item" data-id="'+item.id+'">✏️ Edit</button> <button class="btn btn-danger btn-sm btn-del-item" data-id="'+item.id+'">Del</button></td></tr>'}).join(''):'<tr><td colspan="5" style="text-align:center;padding:1rem;">No items</td></tr>';
     
     var invtb=$('invTableBody');
-    if(invtb) invtb.innerHTML=DB.invoices.length?DB.invoices.map(function(inv){var p=getPartyById(inv.partyId);return '<tr><td>'+inv.number+'</td><td>'+(p?p.name:'-')+'</td><td>'+inv.date+'</td><td>'+fmt(inv.grandTotal)+'</td><td>'+fmt(inv.balance)+'</td><td style="position:relative;"><button class="btn btn-info btn-sm explore-btn" data-type="invoice" data-id="'+inv.id+'">🔍 Explore</button></td></tr>'}).join(''):'<tr><td colspan="6" style="text-align:center;padding:1rem;">No invoices</td></tr>';
+    if(invtb) invtb.innerHTML=DB.invoices.length?DB.invoices.map(function(inv){var p=getPartyById(inv.partyId);return '<tr><td>'+inv.number+'</td><td>'+(p?p.name:'-')+'</td><td>'+inv.date+'</td><td>'+fmt(inv.grandTotal)+'</td><td>'+fmt(inv.balance)+'</td><td style="position:relative;"><button class="btn btn-info btn-sm explore-btn" data-type="invoice" data-id="'+inv.id+'"> Explore</button></td></tr>'}).join(''):'<tr><td colspan="6" style="text-align:center;padding:1rem;">No invoices</td></tr>';
     
     var qtb=$('quoTableBody');
-    if(qtb) qtb.innerHTML=DB.quotations.length?DB.quotations.map(function(q){var p=getPartyById(q.partyId);var statusBadge=q.status==='Converted'?'<span style="background:var(--primary-light);color:var(--primary-dark);padding:0.25rem 0.6rem;border-radius:20px;font-size:0.75rem;font-weight:600;">Converted</span>':'<span style="background:var(--warning-light);color:#92400e;padding:0.25rem 0.6rem;border-radius:20px;font-size:0.75rem;font-weight:600;">Pending</span>';return '<tr><td>'+q.number+'</td><td>'+(p?p.name:'-')+'</td><td>'+q.date+'</td><td>'+fmt(q.grandTotal)+'</td><td>'+statusBadge+'</td><td style="position:relative;"><button class="btn btn-info btn-sm explore-btn" data-type="quotation" data-id="'+q.id+'">🔍 Explore</button></td></tr>'}).join(''):'<tr><td colspan="6" style="text-align:center;padding:1rem;">No quotations</td></tr>';
+    if(qtb) qtb.innerHTML=DB.quotations.length?DB.quotations.map(function(q){var p=getPartyById(q.partyId);var statusBadge=q.status==='Converted'?'<span style="background:var(--primary-light);color:var(--primary-dark);padding:0.25rem 0.6rem;border-radius:20px;font-size:0.75rem;font-weight:600;">Converted</span>':'<span style="background:var(--warning-light);color:#92400e;padding:0.25rem 0.6rem;border-radius:20px;font-size:0.75rem;font-weight:600;">Pending</span>';return '<tr><td>'+q.number+'</td><td>'+(p?p.name:'-')+'</td><td>'+q.date+'</td><td>'+fmt(q.grandTotal)+'</td><td>'+statusBadge+'</td><td style="position:relative;"><button class="btn btn-info btn-sm explore-btn" data-type="quotation" data-id="'+q.id+'"> Explore</button></td></tr>'}).join(''):'<tr><td colspan="6" style="text-align:center;padding:1rem;">No quotations</td></tr>';
 }
 
 function renderTemplates(){
@@ -189,7 +345,7 @@ function showExploreMenu(type,id){
         if($('exploreTitle')) $('exploreTitle').textContent='Explore: '+p.name;
         optionsHtml='<div class="explore-menu-item" data-action="edit-party" data-id="'+id+'">✏️ Edit Party</div>';
         optionsHtml+='<div class="explore-menu-item" data-action="call" data-phone="'+p.phone+'"> Call '+p.phone+'</div>';
-        optionsHtml+='<div class="explore-menu-item" data-action="whatsapp" data-phone="'+p.phone+'" data-name="'+p.name+'">💬 WhatsApp</div>';
+        optionsHtml+='<div class="explore-menu-item" data-action="whatsapp" data-phone="'+p.phone+'" data-name="'+p.name+'"> WhatsApp</div>';
         var pendingQuo=hasPendingQuotation(id);
         if(pendingQuo){
             optionsHtml+='<div class="explore-menu-item" data-action="convert-quotation" data-id="'+pendingQuo.id+'">🧾 Convert Quotation to Invoice ('+pendingQuo.number+')</div>';
@@ -198,7 +354,7 @@ function showExploreMenu(type,id){
             optionsHtml+='<div class="explore-menu-item" data-action="send-quotation" data-id="'+id+'">📄 Create New Quotation</div>';
             optionsHtml+='<div class="explore-menu-item" data-action="send-invoice" data-id="'+id+'">🧾 Create New Invoice</div>'
         }
-        optionsHtml+='<div class="explore-menu-item" data-action="update-payment" data-id="'+id+'">💰 Update Payment</div>';
+        optionsHtml+='<div class="explore-menu-item" data-action="update-payment" data-id="'+id+'"> Update Payment</div>';
         optionsHtml+='<div class="explore-menu-item" data-action="send-reminder" data-id="'+id+'">🔔 Send Payment Reminder</div>';
         optionsHtml+='<div class="explore-menu-item danger" data-action="delete-party" data-id="'+id+'">🗑️ Delete Party</div>';
     }else if(type==='invoice'){
@@ -206,11 +362,11 @@ function showExploreMenu(type,id){
         if(!inv)return;
         var p=getPartyById(inv.partyId);
         if($('exploreTitle')) $('exploreTitle').textContent='Explore: '+inv.number;
-        optionsHtml='<div class="explore-menu-item" data-action="create-new-invoice">➕ Create New Invoice</div>';
+        optionsHtml='<div class="explore-menu-item" data-action="create-new-invoice"> Create New Invoice</div>';
         optionsHtml+='<div class="explore-menu-item" data-action="call" data-phone="'+(p?p.phone:'')+'"> Call Party</div>';
         optionsHtml+='<div class="explore-menu-item" data-action="update-payment" data-id="'+id+'">💰 Update Payment</div>';
-        optionsHtml+='<div class="explore-menu-item" data-action="send-reminder" data-id="'+id+'">🔔 Send Payment Reminder</div>';
-        optionsHtml+='<div class="explore-menu-item" data-action="preview-doc" data-type="invoice" data-id="'+id+'">👁️ Preview</div>';
+        optionsHtml+='<div class="explore-menu-item" data-action="send-reminder" data-id="'+id+'"> Send Payment Reminder</div>';
+        optionsHtml+='<div class="explore-menu-item" data-action="preview-doc" data-type="invoice" data-id="'+id+'">️ Preview</div>';
         optionsHtml+='<div class="explore-menu-item" data-action="print-doc" data-type="invoice" data-id="'+id+'">🖨️ Print / PDF</div>';
         optionsHtml+='<div class="explore-menu-item" data-action="whatsapp-invoice" data-phone="'+(p?p.phone:'')+'" data-name="'+(p?p.name:'')+'" data-amount="'+fmt(inv.grandTotal)+'" data-number="'+inv.number+'">💬 Send on WhatsApp</div>';
         optionsHtml+='<div class="explore-menu-item danger" data-action="delete-invoice" data-id="'+id+'">🗑️ Delete Invoice</div>';
@@ -224,8 +380,8 @@ function showExploreMenu(type,id){
         }else{
             optionsHtml='<div class="explore-menu-item" data-action="create-new-quotation">📄 Create New Quotation</div>'
         }
-        optionsHtml+='<div class="explore-menu-item" data-action="call" data-phone="'+(p?p.phone:'')+'">📞 Call Party</div>';
-        optionsHtml+='<div class="explore-menu-item" data-action="preview-doc" data-type="quotation" data-id="'+id+'">👁️ Preview</div>';
+        optionsHtml+='<div class="explore-menu-item" data-action="call" data-phone="'+(p?p.phone:'')+'"> Call Party</div>';
+        optionsHtml+='<div class="explore-menu-item" data-action="preview-doc" data-type="quotation" data-id="'+id+'">️ Preview</div>';
         optionsHtml+='<div class="explore-menu-item" data-action="print-doc" data-type="quotation" data-id="'+id+'">🖨️ Print / PDF</div>';
         optionsHtml+='<div class="explore-menu-item" data-action="whatsapp-quotation" data-phone="'+(p?p.phone:'')+'" data-name="'+(p?p.name:'')+'" data-amount="'+fmt(q.grandTotal)+'" data-number="'+q.number+'">💬 Send on WhatsApp</div>';
         optionsHtml+='<div class="explore-menu-item danger" data-action="delete-quotation" data-id="'+id+'">🗑️ Delete Quotation</div>';
@@ -609,7 +765,7 @@ if($('btnSendWhatsApp')) $('btnSendWhatsApp').onclick=function(){
     var companyName=DB.settings.compName||'Our Company';
     var docType=currentDocType==='invoice'?'Invoice':'Quotation';
     var refNum=$('docRef').value;
-    var message='📄 *'+docType+' from '+companyName+'*\n\n📋 Ref: '+refNum+'\n📅 Date: '+$('docDate').value+'\n\n*Items:*\n';
+    var message='📄 *'+docType+' from '+companyName+'*\n\n Ref: '+refNum+'\n📅 Date: '+$('docDate').value+'\n\n*Items:*\n';
     currentDocItems.forEach(function(it,i){message+=(i+1)+'. '+it.name+' - Qty: '+it.qty+' × '+fmt(it.price)+' = '+fmt(it.total)+'\n'});
     message+='\nSubtotal: '+fmt(sub)+'\nGST: '+fmt(gst)+'\n';
     if(currentDiscount>0)message+='Discount: -'+fmt(currentDiscount)+'\n';
@@ -698,7 +854,7 @@ if($('btnSaveSettings')) $('btnSaveSettings').onclick=function(){
 
 if($('btnBackup')) $('btnBackup').onclick=function(){var dataStr=JSON.stringify(DB,null,2);var blob=new Blob([dataStr],{type:'application/json'});var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download='billing_backup_'+today()+'.json';a.click();setTimeout(function(){window.location.href='mailto:'+(DB.settings.compEmail||'')+'?subject=Billing Backup&body=Attached is my backup.'},1000);toast('Backup downloaded! Attach to email.','info')};
 if($('btnRestore')) $('btnRestore').onclick=function(){if($('restoreFile'))$('restoreFile').click()};
-if($('restoreFile')) $('restoreFile').onchange=function(e){if(e.target.files&&e.target.files[0]){var r=new FileReader();r.onload=function(ev){try{var data=JSON.parse(ev.target.result);if(confirm('Replace current data?')){DB={parties:data.parties||[],items:data.items||[],invoices:data.invoices||[],quotations:data.quotations||[],templates:data.templates||[],purchases:data.purchases||[],payments:data.payments||[],settings:data.settings||{compName:'',compMobile:'',compEmail:'',compGst:'',compWeb:'',compSocial:'',bankName:'',bankAcc:'',bankIfsc:'',bankBranch:'',logo:'',terms:'',notes:'',signature:''}};safeSet('bp_parties',DB.parties);safeSet('bp_items',DB.items);safeSet('bp_invoices',DB.invoices);safeSet('bp_quotations',DB.quotations);safeSet('bp_templates',DB.templates);safeSet('bp_purchases',DB.purchases);safeSet('bp_payments',DB.payments);safeSet('bp_settings',DB.settings);initApp();toast('Data Restored!')}}catch(err){toast('Invalid file','error')}}};r.readAsText(e.target.files[0])}};
+if($('restoreFile')) $('restoreFile').onchange=function(e){if(e.target.files&&e.target.files[0]){var r=new FileReader();r.onload=function(ev){try{var data=JSON.parse(ev.target.result);if(confirm('Replace current data?')){DB={parties:data.parties||[],items:data.items||[],invoices:data.invoices||[],quotations:data.quotations||[],templates:data.templates||[],purchases:data.purchases||[],payments:data.payments||[],settings:data.settings||{compName:'',compMobile:'',compEmail:'',compGst:'',compWeb:'',compSocial:'',bankName:'',bankAcc:'',bankIfsc:'',bankBranch:'',logo:'',terms:'',notes:'',signature:''},users:data.users||[]};safeSet('bp_parties',DB.parties);safeSet('bp_items',DB.items);safeSet('bp_invoices',DB.invoices);safeSet('bp_quotations',DB.quotations);safeSet('bp_templates',DB.templates);safeSet('bp_purchases',DB.purchases);safeSet('bp_payments',DB.payments);safeSet('bp_settings',DB.settings);safeSet('bp_users',DB.users);initApp();toast('Data Restored!')}}catch(err){toast('Invalid file','error')}}};r.readAsText(e.target.files[0])}};
 
 function initApp(){
     if($('setCompName')) $('setCompName').value=DB.settings.compName||'';
