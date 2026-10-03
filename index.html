@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Digi Billing Pro</title>
+
+<!-- PWA / App Install Codes (No need for separate JSON file now) -->
+<meta name="theme-color" content="#0d9488">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="Professional Billing and Invoice Management App">
+
 <!-- External CSS Link -->
 <link rel="stylesheet" href="style.css">
 </head>
@@ -12,14 +19,39 @@
 <button type="button" class="mobile-toggle" id="mobileToggle">☰ Menu</button>
 <button type="button" class="back-btn" id="backBtn">← Main Menu</button>
 
-<!-- AUTH SCREEN -->
+<!-- AUTH SCREEN (Login + Sign Up) -->
 <div class="auth-overlay" id="authScreen">
-    <div class="modal" style="max-width:400px;text-align:center;">
+    
+    <!-- LOGIN FORM -->
+    <div class="modal" id="loginForm" style="max-width:400px;text-align:center;">
         <h2 style="color:var(--primary);margin-bottom:1.5rem;">📊 Digi Billing Pro</h2>
         <div class="form-group"><label>Username</label><input type="email" id="logEmail" class="form-control" value="surajanandpbh@gmail.com"></div>
         <div class="form-group"><label>Password</label><input type="password" id="logPass" class="form-control" value=":@Suraj4048"></div>
         <button type="button" class="btn btn-primary btn-block" id="btnLogin" style="margin-top:1rem;padding:1rem;">Login</button>
+        <p style="margin-top:1rem;text-align:center;">New user? <a href="#" id="showSignup" style="color:var(--primary);text-decoration:underline;">Create Account</a></p>
     </div>
+
+    <!-- SIGN UP FORM (Hidden by default) -->
+    <div class="modal" id="signupForm" style="max-width:400px;text-align:center;display:none;">
+        <h2 style="color:var(--primary);margin-bottom:1.5rem;">📝 Create Account</h2>
+        <div class="form-group"><label>Email *</label><input type="email" id="signupEmail" class="form-control" placeholder="your@email.com"></div>
+        <div class="form-group"><label>Password *</label><input type="password" id="signupPass" class="form-control" placeholder="Min 6 characters"></div>
+        <div class="form-group"><label>Confirm Password *</label><input type="password" id="signupConfirmPass" class="form-control" placeholder="Re-enter password"></div>
+        <div class="form-group">
+            <label>Security Question *</label>
+            <select id="signupSecurityQ" class="form-control">
+                <option value="">-- Select Question --</option>
+                <option value="pet">What is your pet's name?</option>
+                <option value="school">What was your first school name?</option>
+                <option value="city">What is your birth city?</option>
+                <option value="mother">What is your mother's maiden name?</option>
+            </select>
+        </div>
+        <div class="form-group"><label>Security Answer *</label><input type="text" id="signupSecurityA" class="form-control" placeholder="Your answer"></div>
+        <button type="button" class="btn btn-success btn-block" id="btnSignup" style="margin-top:1rem;padding:1rem;">Create Account</button>
+        <p style="margin-top:1rem;text-align:center;">Already have an account? <a href="#" id="showLogin" style="color:var(--primary);text-decoration:underline;">Login here</a></p>
+    </div>
+
 </div>
 
 <div class="app-layout" id="appLayout" style="display:none;">
@@ -108,7 +140,7 @@
 </div>
 <div id="ledgerContent" style="display:none;">
 <div class="stats-grid">
-<div class="stat-box"><h4>Total Debit</h4><p id="ledDebit">₹0</p></div>
+<div class="stat-box"><h4>Total Debit</h4><p id="ledDebit">0</p></div>
 <div class="stat-box"><h4>Total Credit</h4><p id="ledCredit">₹0</p></div>
 <div class="stat-box"><h4>Balance</h4><p id="ledBalance">₹0</p></div>
 </div>
@@ -218,7 +250,7 @@
 <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;"><span>Subtotal:</span><span id="calcSub">₹0.00</span></div>
 <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;"><span>GST:</span><span id="calcGst">₹0.00</span></div>
 <div id="discountRow" style="display:flex;justify-content:space-between;margin-bottom:0.5rem;"><span>Discount:</span><span id="calcDiscount">₹0.00</span></div>
-<div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;font-weight:bold;font-size:1.1rem;"><span>Grand Total:</span><span id="calcGrand">₹0.00</span></div>
+<div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;font-weight:bold;font-size:1.1rem;"><span>Grand Total:</span><span id="calcGrand">0.00</span></div>
 <p id="amountWords" class="amount-words">Zero Rupees Only</p>
 <div id="advSection" style="margin-top:1rem;padding-top:1rem;border-top:1px dashed var(--border);display:none;">
 <div style="display:flex;justify-content:space-between;color:var(--success);"><span>Total Advance:</span><span id="calcAdv">₹0.00</span></div>
@@ -231,7 +263,7 @@
 <div style="margin-top:1.5rem;display:flex;gap:0.75rem;flex-wrap:wrap;">
 <button type="button" class="btn btn-primary" id="btnSaveDoc">💾 Save Document</button>
 <button type="button" class="btn btn-info" id="btnPreviewDoc">👁️ Preview</button>
-<button type="button" class="btn btn-success" id="btnPrintDoc">🖨️ Print / PDF</button>
+<button type="button" class="btn btn-success" id="btnPrintDoc">️ Print / PDF</button>
 <button type="button" class="btn btn-whatsapp" id="btnSendWhatsApp">💬 Send via WhatsApp</button>
 </div>
 </div>
@@ -239,7 +271,7 @@
 </main>
 </div>
 
-<!-- MODALS (Party, Item, DocItem, PickTemp, PickQuo, Preview, Explore, Adv, LedPay) -->
+<!-- MODALS -->
 <div class="modal-overlay" id="partyModal"><div class="modal"><div class="modal-header"><h3 id="partyModalTitle">Add Party</h3><button type="button" class="modal-close" data-close="partyModal">&times;</button></div>
 <div class="form-group"><label>Name *</label><input type="text" id="pName" class="form-control"></div>
 <div class="form-group"><label>Phone *</label><input type="tel" id="pPhone" class="form-control"></div>
