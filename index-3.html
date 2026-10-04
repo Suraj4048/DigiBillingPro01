@@ -1,0 +1,1820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digi Billing Pro</title>
+<meta name="theme-color" content="#be185d">
+<style>
+:root { --primary: #be185d; --primary-dark: #9d174d; --primary-light: #fce7f3; --success: #db2777; --danger: #ef4444; --warning: #c026d3; --bg: #f1f5f9; --surface: #fff; --sidebar: #831843; --text: #0f172a; --muted: #64748b; --border: #e2e8f0; --radius: 10px; }
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+body { background: var(--bg); color: var(--text); min-height: 100vh; }
+.app-layout { display: flex; min-height: 100vh; }
+.sidebar { width: 260px; background: var(--sidebar); color: white; padding: 1.5rem 1rem; position: fixed; height: 100vh; display: flex; flex-direction: column; transition: 0.3s; z-index: 100; overflow-y: auto; }
+.brand { font-size: 1.3rem; font-weight: 700; margin-bottom: 2rem; color: #f9a8d4; display: flex; align-items: center; gap: 0.5rem; }
+.brand span { color: #fff; }
+.nav-menu { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; flex: 1; }
+.nav-btn { width: 100%; text-align: left; padding: 0.85rem 1rem; background: none; border: none; color: #fbcfe8; border-radius: 8px; cursor: pointer; font-size: 0.95rem; display: flex; align-items: center; gap: 0.75rem; transition: 0.2s; }
+.nav-btn:hover { background: rgba(255,255,255,0.1); color: white; }
+.nav-btn.active { background: var(--primary); color: white; font-weight: 600; }
+.logout-btn { margin-top: auto; background: var(--danger); color: white; border: none; padding: 0.75rem; border-radius: 8px; cursor: pointer; font-weight: 600; }
+.main-content { margin-left: 260px; flex: 1; padding: 2rem; width: calc(100% - 260px); }
+.section { display: none; animation: fadeIn 0.3s; }
+.section.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.5rem; }
+.page-header h1 { font-size: 1.5rem; font-weight: 700; }
+.card { background: var(--surface); border-radius: var(--radius); padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+.stat-box { background: white; padding: 1.25rem; border-radius: var(--radius); border-left: 4px solid var(--primary); }
+.stat-box h4 { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; margin-bottom: 0.5rem; }
+.stat-box p { font-size: 1.5rem; font-weight: 700; }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+.form-group { margin-bottom: 1rem; }
+.form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; }
+.form-control { width: 100%; padding: 0.7rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.95rem; }
+.form-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+textarea.form-control { resize: vertical; min-height: 80px; }
+.btn { padding: 0.6rem 1.2rem; border: none; border-radius: 6px; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; transition: 0.2s; }
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-success { background: var(--success); color: white; }
+.btn-danger { background: var(--danger); color: white; }
+.btn-warning { background: var(--warning); color: white; }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn-info { background: #3b82f6; color: white; }
+.btn-whatsapp { background: #25D366; color: white; }
+.btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
+.btn-block { width: 100%; justify-content: center; }
+.table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); background: white; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 0.85rem 1rem; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+th { background: #f8fafc; font-weight: 600; color: var(--muted); font-size: 0.75rem; text-transform: uppercase; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #f8fafc; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 1rem; backdrop-filter: blur(4px); }
+.modal-overlay.active { display: flex; }
+.modal { background: white; border-radius: var(--radius); width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; padding: 1.5rem; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+.modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; }
+.toast-container { position: fixed; top: 20px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 10px; }
+.toast { padding: 0.8rem 1.2rem; border-radius: 6px; color: white; font-weight: 500; animation: slideIn 0.3s; }
+.toast.success { background: var(--success); }
+.toast.error { background: var(--danger); }
+@keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+.mobile-toggle { display: none; position: fixed; top: 1rem; left: 1rem; z-index: 101; background: var(--primary); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; align-items: center; gap: 0.4rem; }
+.back-btn { display: none; position: fixed; top: 1rem; right: 1rem; z-index: 101; background: var(--primary); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; align-items: center; gap: 0.4rem; }
+@media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
+    .main-content { margin-left: 0; width: 100%; padding: 1rem; padding-top: 4rem; }
+    .mobile-toggle { display: inline-flex; }
+    .back-btn { display: inline-flex; }
+    .form-grid { grid-template-columns: 1fr; }
+    .page-header { flex-direction: column; align-items: flex-start; }
+}
+.inline-add { display: flex; gap: 0.5rem; align-items: flex-start; }
+.inline-add .form-control { flex: 1; }
+.explore-menu-item { padding: 0.85rem 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.75rem; border-bottom: 1px solid var(--border); transition: 0.2s; font-size: 0.95rem; }
+.explore-menu-item:last-child { border-bottom: none; }
+.explore-menu-item:hover { background: var(--primary-light); }
+.explore-menu-item.danger { color: var(--danger); }
+.explore-menu-item.danger:hover { background: #fee2e2; }
+.advance-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: #f8fafc; border-radius: 6px; margin-bottom: 0.5rem; border: 1px solid var(--border); }
+.advance-item img { max-width: 60px; border-radius: 4px; margin-top: 0.25rem; }
+.advance-details { flex: 1; }
+.advance-details .mode { font-weight: 600; font-size: 0.85rem; }
+.advance-details .meta { font-size: 0.75rem; color: var(--muted); }
+.advance-amount { font-weight: 700; color: var(--success); margin-right: 0.5rem; }
+
+:root{--warning-light:#fef3c7}
+#authOverlay{position:fixed;inset:0;z-index:3000;background:linear-gradient(135deg,#500724,#be185d);display:flex;align-items:center;justify-content:center;padding:1rem;overflow-y:auto}
+.auth-box{background:#fff;border-radius:14px;padding:1.5rem;width:100%;max-width:380px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.4)}
+.auth-box h2{color:#9d174d;margin-bottom:1rem}.auth-logo{font-size:2.2rem}
+.auth-box .form-control,.auth-box .btn{margin-bottom:.7rem}
+.auth-link{font-size:.85rem;margin-top:.4rem}.auth-link a{color:#be185d;font-weight:600;cursor:pointer;text-decoration:underline}
+.auth-msg{color:#dc2626;font-size:.85rem;margin-top:.5rem;min-height:1em}.auth-q{font-size:.85rem;font-weight:600;text-align:left;margin:.3rem 0}
+#btnSignOut{margin-top:auto;background:#f472b6;color:#500724}#btnLogout{margin-top:.5rem}
+.back-btn{display:none}
+.btn-primary,.btn-success,.btn-info,.btn-whatsapp,.btn-warning{}
+#btnSaveSettings,#btnSaveDoc,#btnPreviewDoc,#btnPrintDoc,#btnSendWhatsApp,#cpGo,.modal .btn:not(.btn-sm){width:100%;justify-content:center;padding:.95rem 1rem;font-size:1rem;margin-top:.5rem}
+.card>.btn-primary{margin-top:.5rem}
+.chk{display:flex;align-items:center;gap:.5rem;font-size:.9rem;margin:.3rem 0 .8rem;cursor:pointer;text-align:left}
+.pw{position:relative}.pw .form-control{padding-right:2.6rem}.eye{position:absolute;right:.8rem;top:.7rem;cursor:pointer;user-select:none}
+.auth-link{display:flex;justify-content:space-between}.auth-box select.form-control{margin-bottom:.7rem}
+.det{font-size:.75rem;color:#555;margin-top:2px;line-height:1.4}
+.quick{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.6rem;margin-bottom:1.2rem}
+.calc{max-width:340px;margin:auto}.calc .scr{background:#500724;color:#fff;border-radius:10px;padding:1rem;text-align:right;margin-bottom:.7rem;min-height:80px}
+.calc .scr small{color:#f9a8d4;display:block;min-height:1.2em}.calc .scr div{font-size:1.9rem;font-weight:700;word-break:break-all}
+.calc .pad{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem}.calc .pad button{padding:1rem 0;font-size:1.2rem;border:none;border-radius:10px;background:#fce7f3;color:#500724;cursor:pointer;font-weight:600}
+.calc .pad button.op{background:#f472b6}.calc .pad button.eq{background:#be185d;color:#fff}.calc .pad button.cl{background:#fecaca}
+.opt-row{display:flex;flex-wrap:wrap;gap:.4rem 1.2rem;margin:.5rem 0}.opt-row label{display:flex;align-items:center;gap:.4rem;font-size:.9rem;cursor:pointer}
+
+#topBar{position:fixed;top:0;left:0;right:0;height:58px;background:var(--primary-dark);z-index:150;display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:0 .75rem;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+#topBar .mobile-toggle,#topBar .back-btn,#topBar .calc-btn{position:static;display:inline-flex!important;align-items:center;gap:.3rem;background:#fff;color:var(--primary-dark);border:none;padding:.55rem .9rem;border-radius:8px;font-weight:700;font-size:.9rem;cursor:pointer;white-space:nowrap}
+#botBar{position:fixed;bottom:0;left:0;right:0;z-index:150;background:#fff;border-top:2px solid var(--primary);box-shadow:0 -2px 8px rgba(0,0,0,.15)}
+.tabs3{display:flex;gap:.4rem;padding:.45rem .6rem}.tabs3 button{flex:1;padding:.6rem .2rem;border:none;border-radius:8px;background:var(--primary-light);color:var(--primary-dark);font-weight:700;font-size:.85rem;cursor:pointer}.tabs3 button.on{background:var(--primary);color:#fff}
+.pby{text-align:center;font-size:.72rem;background:var(--primary-dark);color:#fff;padding:.25rem}
+.main-content{padding-top:76px!important;padding-bottom:120px!important}
+.sidebar{z-index:160}.toast-container{top:70px}
+@media(min-width:769px){#topBar,#botBar{left:260px}#topBar #mobileToggle{display:none!important}}
+.tabs{display:flex;gap:.5rem;margin-bottom:1rem}.tab{flex:1;padding:.7rem;border:2px solid var(--primary);background:#fff;color:var(--primary-dark);border-radius:8px;font-weight:700;cursor:pointer}.tab.active{background:var(--primary);color:#fff}
+.ttl2{font-weight:700;color:var(--primary-dark);font-size:.85rem;margin-bottom:2px}
+.vrow,.frow,.nrow,.arow,.fl{display:flex;align-items:center;gap:.5rem;padding:.6rem 0;border-bottom:1px solid var(--border)}
+.vrow .nm,.frow .nm,.nrow .nm,.arow .nm{flex:1;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis}
+.vrow .btn{padding:.35rem .5rem;font-size:.72rem}.vt{font-size:.72rem;text-align:right;line-height:1.3;white-space:nowrap}
+.fl{flex-wrap:wrap}.fl .nm{flex:1 1 100%}.fl .btn{padding:.4rem .7rem;font-size:.8rem}
+.btn-info{background:#a21caf!important;color:#fff!important}
+</style>
+</head>
+<body>
+<div class="toast-container" id="toastContainer"></div>
+<div id="topBar"></div>
+<div id="botBar"><div class="tabs3"><button type="button" data-go="quotations">📄 Quotation</button><button type="button" data-go="sales">🧾 Sales Invoice</button><button type="button" data-go="documents">🗂️ Documents</button></div><div class="pby">Powered by : www.digidashland.in</div></div>
+<button type="button" class="mobile-toggle" id="mobileToggle">☰ Menu</button>
+<button type="button" class="back-btn" id="backBtn">← Main Menu</button>
+
+<div class="app-layout" id="appLayout">
+<aside class="sidebar" id="sidebar">
+    <div class="brand">📊 <span>Digi Billing Pro</span></div>
+    <ul class="nav-menu">
+        <li><button class="nav-btn active" data-target="dashboard">🏠 Dashboard</button></li>
+        <li><button class="nav-btn" data-target="parties">👥 Parties</button></li>
+        <li><button class="nav-btn" data-target="inventory">📦 Inventory</button></li>
+        <li><button class="nav-btn" data-target="templates">📁 Projects</button></li>
+        <li><button class="nav-btn" data-target="quotations">📄 Quotations</button></li>
+        <li><button class="nav-btn" data-target="sales">🧾 Sales Invoice</button></li>
+        <li><button class="nav-btn" data-target="visits">📅 Schedule Visit</button></li>
+        <li><button class="nav-btn" data-target="documents">🗂️ Documents</button></li>
+        <li><button class="nav-btn" data-target="ledger">📒 Ledger</button></li>
+        <li><button class="nav-btn" data-target="purchase">📥 Purchase</button></li>
+        <li><button class="nav-btn" data-target="calculator">🧮 Calculator</button></li>
+        <li><button class="nav-btn" data-target="settings">⚙️ Settings</button></li>
+    </ul>
+    <button type="button" class="logout-btn" id="btnSignOut">Logout</button>
+    <button type="button" class="logout-btn" id="btnLogout">Reset App Data</button>
+</aside>
+
+<main class="main-content">
+<section id="dashboard" class="section active">
+    <div class="page-header"><h1>Dashboard</h1><span id="whoami" style="color:var(--muted);font-size:.85rem"></span></div>
+    <div class="quick"><button class="btn btn-primary btn-block" onclick="startDocForm('quotation')">📄 New Quotation</button><button class="btn btn-primary btn-block" onclick="startDocForm('invoice')">🧾 New Invoice</button><button class="btn btn-success btn-block" onclick="navigateTo('parties')">👥 Parties</button><button class="btn btn-success btn-block" onclick="navigateTo('templates')">📁 Projects</button></div>
+    <div class="stats-grid">
+        <div class="stat-box"><h4>Total Sales</h4><p id="statSales">₹0</p></div>
+        <div class="stat-box"><h4>Invoices</h4><p id="statInv">0</p></div>
+        <div class="stat-box"><h4>Parties</h4><p id="statParties">0</p></div>
+        <div class="stat-box"><h4>Pending</h4><p id="statPending">₹0</p></div>
+    </div>
+    <div class="card"><h3 style="margin-bottom:1rem;">Recent Invoices</h3>
+        <div class="table-wrap"><table><thead><tr><th>Inv #</th><th>Party</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead>
+        <tbody id="dashRecentInv"><tr><td colspan="5" style="text-align:center; padding:1rem;">No data</td></tr></tbody></table></div>
+    </div>
+</section>
+
+<section id="parties" class="section">
+    <div class="page-header"><h1>Parties</h1><button type="button" class="btn btn-primary" id="btnNewParty">+ Add Party</button></div>
+    <div class="card"><input type="search" class="form-control srch" data-t="partyTableBody" placeholder="Search" style="margin-bottom:.8rem"><div class="table-wrap"><table><thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Balance</th><th>Actions</th></tr></thead>
+    <tbody id="partyTableBody"><tr><td colspan="5" style="text-align:center; padding:1rem;">No parties</td></tr></tbody></table></div></div>
+</section>
+
+<section id="inventory" class="section">
+    <div class="page-header"><h1>Inventory</h1><button type="button" class="btn btn-primary" id="btnNewItem">+ Add Item</button></div>
+    <div class="tabs"><button type="button" class="tab active" onclick="navigateTo('inventory')">Products</button><button type="button" class="tab" onclick="navigateTo('templates')">Projects</button></div>
+    <div class="card"><input type="search" class="form-control srch" data-t="itemTableBody" placeholder="Search" style="margin-bottom:.8rem"><div class="table-wrap"><table><thead><tr><th>Name</th><th>Price</th><th>Stock</th><th>GST%</th><th>Actions</th></tr></thead>
+    <tbody id="itemTableBody"><tr><td colspan="5" style="text-align:center; padding:1rem;">No items</td></tr></tbody></table></div></div>
+</section>
+
+<section id="quotations" class="section">
+    <div class="page-header"><h1>Quotations</h1><button type="button" class="btn btn-primary" id="btnNewQuo">+ Create New Quotation</button></div>
+    <div class="card"><input type="search" class="form-control srch" data-t="quoTableBody" placeholder="Search" style="margin-bottom:.8rem"><div class="table-wrap"><table><thead><tr><th>Quo #</th><th>Party</th><th>Date</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody id="quoTableBody"><tr><td colspan="6" style="text-align:center; padding:1rem;">No quotations</td></tr></tbody></table></div></div>
+</section>
+
+<section id="templates" class="section">
+    <div class="page-header"><h1>Projects</h1><button type="button" class="btn btn-primary" id="btnNewProject">+ Add Project</button><button type="button" class="btn btn-outline" id="btnHowTemplates" style="display:none">ℹ️ How to Use</button></div>
+    <div class="tabs"><button type="button" class="tab" onclick="navigateTo('inventory')">Products</button><button type="button" class="tab active" onclick="navigateTo('templates')">Projects</button></div>
+    <div class="card"><input type="search" class="form-control srch" data-t="tempTableBody" placeholder="Search" style="margin-bottom:.8rem">
+        
+        <div class="table-wrap"><table><thead><tr><th>Project Name</th><th>Items</th><th>Total</th><th>Created</th><th>Actions</th></tr></thead>
+        <tbody id="tempTableBody"><tr><td colspan="5" style="text-align:center; padding:1rem;">No projects</td></tr></tbody></table></div>
+    </div>
+</section>
+
+<section id="sales" class="section">
+    <div class="page-header">
+        <h1>🧾 Sales Invoices</h1>
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <button type="button" class="btn btn-primary" id="btnNewInv">+ New Invoice</button>
+            <button type="button" class="btn btn-info" id="btnFromQuo">📄 From Quotation</button>
+        </div>
+    </div>
+    <div class="card"><input type="search" class="form-control srch" data-t="invTableBody" placeholder="Search" style="margin-bottom:.8rem"><div class="table-wrap"><table><thead><tr><th>Inv #</th><th>Party</th><th>Date</th><th>Amount</th><th>Balance</th><th>Actions</th></tr></thead>
+    <tbody id="invTableBody"><tr><td colspan="6" style="text-align:center; padding:1rem;">No invoices</td></tr></tbody></table></div></div>
+</section>
+
+<section id="visits" class="section">
+    <div class="page-header"><h1>Schedule Visit</h1></div>
+    <div class="card"><div class="form-grid">
+        <div class="form-group"><label>Party *</label><div class="inline-add"><select id="vParty" class="form-control"></select><button type="button" class="btn btn-success btn-sm" id="btnVAddParty">+ Add</button></div></div>
+        <div class="form-group"><label>Date *</label><input type="date" id="vDate" class="form-control"></div>
+        <div class="form-group"><label>Time *</label><input type="time" id="vTime" class="form-control"></div></div>
+        <div class="form-group"><label>Remarks</label><textarea id="vRemarks" class="form-control" rows="2"></textarea></div>
+        <button type="button" class="btn btn-primary btn-block" id="btnSaveVisit">Save Visit</button></div>
+    <div class="card"><h3 style="margin-bottom:.8rem">Visit List</h3><input type="search" class="form-control srch" data-t="visitList" data-rows=".vrow" placeholder="Search" style="margin-bottom:.8rem"><div id="visitList"></div></div>
+</section>
+
+<section id="documents" class="section">
+    <div class="page-header"><h1>Documents</h1></div>
+    <div class="tabs"><button type="button" class="tab active" data-dt="dFolders">Folders</button><button type="button" class="tab" data-dt="dNotes">Note Pad</button><button type="button" class="tab" data-dt="dAppts">Appointments</button></div>
+    <div id="dFolders" class="dpane">
+        <div class="card"><div class="inline-add"><input type="text" id="fName" class="form-control" placeholder="Folder name"><button type="button" class="btn btn-primary btn-sm" id="btnNewFolder">+ Create</button></div>
+        <input type="search" class="form-control srch" data-t="folderList" data-rows=".frow" placeholder="Search" style="margin:.8rem 0"><div id="folderList"></div></div>
+        <div class="card" id="folderView" style="display:none"><div class="page-header"><h3 id="fvTitle"></h3><button type="button" class="btn btn-outline btn-sm" id="btnFvClose">Close</button></div>
+        <input type="file" id="fileUp" multiple style="display:none"><button type="button" class="btn btn-primary btn-block" id="btnUpload">⬆ Upload Files</button><div id="fileList" style="margin-top:1rem"></div></div>
+    </div>
+    <div id="dNotes" class="dpane" style="display:none"><div class="card"><button type="button" class="btn btn-primary btn-block" id="btnNewNote">+ New Note</button>
+        <input type="search" class="form-control srch" data-t="noteList" data-rows=".nrow" placeholder="Search" style="margin:.8rem 0"><div id="noteList"></div></div></div>
+    <div id="dAppts" class="dpane" style="display:none"><div class="card"><div class="form-grid">
+        <div class="form-group"><label>Title *</label><input type="text" id="apTitle" class="form-control"></div>
+        <div class="form-group"><label>Date *</label><input type="date" id="apDate" class="form-control"></div>
+        <div class="form-group"><label>Time</label><input type="time" id="apTime" class="form-control"></div></div>
+        <div class="form-group"><label>Notes</label><textarea id="apNotes" class="form-control" rows="2"></textarea></div>
+        <button type="button" class="btn btn-primary btn-block" id="btnSaveAppt">Save Appointment</button></div>
+        <div class="card"><div id="apptList"></div></div></div>
+</section>
+
+<section id="ledger" class="section">
+    <div class="page-header">
+        <h1>📒 Party Ledger</h1>
+        <button type="button" class="btn btn-success" id="btnLedgerAddParty">+ Add New Party</button>
+    </div>
+    <div class="card">
+        <div class="form-group">
+            <label>Select Party</label>
+            <div class="inline-add">
+                <select id="ledgerPartySelect" class="form-control"><option value="">-- Select Party --</option></select>
+            </div>
+        </div>
+    </div>
+    <div id="ledgerContent" style="display:none;">
+        <div class="stats-grid">
+            <div class="stat-box"><h4>Total Debit</h4><p id="ledDebit">₹0</p></div>
+            <div class="stat-box"><h4>Total Credit</h4><p id="ledCredit">₹0</p></div>
+            <div class="stat-box"><h4>Balance</h4><p id="ledBalance">₹0</p></div>
+        </div>
+        <div class="card"><div style="display:flex; justify-content:space-between; margin-bottom:1rem;"><h3>Transactions</h3><button type="button" class="btn btn-success btn-sm" id="btnAddPayment">+ Record Payment</button></div>
+            <div class="table-wrap"><table><thead><tr><th>Date</th><th>Type</th><th>Ref #</th><th>Debit</th><th>Credit</th><th>Balance</th></tr></thead><tbody id="ledgerTableBody"></tbody></table></div>
+        </div>
+    </div>
+</section>
+
+<section id="purchase" class="section">
+    <div class="page-header"><h1>Purchase Orders</h1><button type="button" class="btn btn-primary" id="btnNewPur">+ New Purchase</button></div>
+    <div class="card"><div class="table-wrap"><table><thead><tr><th>PO #</th><th>Supplier</th><th>Date</th><th>Amount</th><th>Actions</th></tr></thead>
+    <tbody id="purTableBody"><tr><td colspan="5" style="text-align:center; padding:1rem;">No purchases</td></tr></tbody></table></div></div>
+</section>
+
+<section id="calculator" class="section">
+    <div class="page-header"><h1>Calculator</h1></div>
+    <div class="card calc"><div class="scr"><small id="calcRes"></small><div id="calcExpr">0</div></div>
+    <div class="pad" id="calcPad"><button class="cl" data-k="C">C</button><button class="op" data-k="(">(</button><button class="op" data-k=")">)</button><button class="op" data-k="÷">÷</button>
+    <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button><button class="op" data-k="×">×</button>
+    <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button><button class="op" data-k="-">−</button>
+    <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button><button class="op" data-k="+">+</button>
+    <button data-k="0">0</button><button data-k=".">.</button><button class="op" data-k="%">%</button><button class="cl" data-k="⌫">⌫</button>
+    <button class="eq" data-k="=" style="grid-column:span 4">=</button></div>
+    <button type="button" class="btn btn-outline btn-block" id="calcUse" style="margin-top:.7rem">Copy Result</button></div>
+</section>
+
+<section id="settings" class="section">
+    <div class="page-header"><h1>Settings & Backup</h1></div>
+    <div class="card"><h3 style="margin-bottom:1rem;">Company Details</h3>
+        <div class="form-grid">
+            <div class="form-group"><label>Company Name</label><input type="text" id="setCompName" class="form-control"></div>
+            <div class="form-group"><label>Phone</label><input type="tel" id="setCompPhone" class="form-control"></div>
+            <div class="form-group"><label>Email</label><input type="email" id="setCompEmail" class="form-control"></div>
+            <div class="form-group"><label>GSTIN</label><input type="text" id="setCompGst" class="form-control"></div>
+            <div class="form-group"><label>PAN</label><input type="text" id="setCompPan" class="form-control"></div>
+            <div class="form-group"><label>Website</label><input type="text" id="setCompWeb" class="form-control"></div>
+            <div class="form-group"><label>State</label><input type="text" id="setCompState" class="form-control"></div>
+            <div class="form-group"><label>Full Address</label><textarea id="setCompAddr" class="form-control" rows="2"></textarea></div>
+            <div class="form-group"><label>Company Logo</label><input type="file" id="setLogo" accept="image/*" class="form-control"><div id="logoPrev" style="margin-top:.4rem"></div><button type="button" class="btn btn-outline btn-sm" id="btnRmLogo">Remove Logo</button></div>
+            <div class="form-group"><label>Signatory Label</label><input type="text" id="setSign" class="form-control"></div>
+            <div class="form-group" style="grid-column:1/-1"><label>Signature</label><canvas id="signCanvas" width="400" height="150" style="width:100%;max-width:400px;height:150px;border:1px dashed var(--border);border-radius:8px;background:#fff;touch-action:none"></canvas>
+            <div style="display:flex;flex-direction:column;gap:.5rem;margin-top:.5rem"><button type="button" class="btn btn-primary" id="btnSignSave">Save Drawn Signature</button><button type="button" class="btn btn-outline" id="btnSignClear">Clear Pad</button><button type="button" class="btn btn-outline" id="btnSignUp">Upload Signature Image</button><button type="button" class="btn btn-outline" id="btnSignRm">Remove Signature</button></div>
+            <input type="file" id="signFile" accept="image/*" style="display:none"><div id="signPrev" style="margin-top:.5rem"></div></div>
+        </div>
+        <h3 style="margin:1rem 0">🏦 Bank Details</h3>
+        <div class="form-grid">
+            <div class="form-group"><label>Account Holder Name</label><input type="text" id="setBankHolder" class="form-control"></div>
+            <div class="form-group"><label>Bank Name</label><input type="text" id="setBankName" class="form-control"></div>
+            <div class="form-group"><label>Account Number</label><input type="text" id="setBankAcc" class="form-control"></div>
+            <div class="form-group"><label>IFSC Code</label><input type="text" id="setBankIfsc" class="form-control"></div>
+            <div class="form-group"><label>Branch</label><input type="text" id="setBankBranch" class="form-control"></div>
+            <div class="form-group"><label>UPI ID</label><input type="text" id="setUpi" class="form-control"></div>
+            <div class="form-group"><label>Terms and Conditions</label><textarea id="setTerms" class="form-control" rows="3"></textarea></div>
+        </div>
+        <button type="button" class="btn btn-primary" id="btnSaveSettings">Save Settings</button>
+    </div>
+    <div class="card"><h3 style="margin-bottom:1rem;">Change Password</h3>
+        <div class="form-grid"><div class="form-group"><label>Current Password</label><input type="password" id="cpOld" class="form-control"></div>
+        <div class="form-group"><label>New Password</label><input type="password" id="cpNew" class="form-control"></div>
+        <div class="form-group"><label>Confirm New Password</label><input type="password" id="cpNew2" class="form-control"></div></div>
+        <button type="button" class="btn btn-primary" id="cpGo">Change Password</button></div>
+    <div class="card"><h3 style="margin-bottom:1rem;">☁️ Cloud Backup</h3>
+        <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+            <button type="button" class="btn btn-success" id="btnBackup">📤 Backup to Email</button>
+            <button type="button" class="btn btn-outline" id="btnRestore">📥 Restore from File</button>
+            <input type="file" id="restoreFile" accept=".json" style="display:none;">
+        </div>
+    </div>
+</section>
+
+<section id="docForm" class="section">
+    <div class="page-header"><h1 id="docFormTitle">Create Document</h1><button type="button" class="btn btn-outline" id="btnCancelDoc">Cancel</button></div>
+    <div class="card">
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Party *</label>
+                <div class="inline-add">
+                    <select id="docParty" class="form-control"></select>
+                    <button type="button" class="btn btn-success btn-sm" id="btnAddPartyInline">+ Add</button>
+                </div>
+            </div>
+            <div class="form-group"><label>Date</label><input type="date" id="docDate" class="form-control"></div>
+            <div class="form-group"><label>Reference #</label><input type="text" id="docRef" class="form-control" readonly></div>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin: 1.5rem 0 1rem 0; flex-wrap:wrap; gap:0.5rem;">
+            <h3>Items</h3>
+            <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                <button type="button" class="btn btn-primary btn-sm" id="btnAddItemToDoc">+ Add Item</button>
+                <button type="button" class="btn btn-warning btn-sm" id="btnPickTemplate">📋 Pick from Projects</button>
+            </div>
+        </div>
+        <div class="table-wrap"><table><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>GST%</th><th>Total</th><th>Action</th></tr></thead>
+        <tbody id="docItemsBody"><tr><td colspan="6" style="text-align:center; padding:1rem;">No items added</td></tr></tbody></table></div>
+        <div class="form-grid" style="margin-top:1.5rem;">
+            <div class="form-group"><label>Notes / Terms</label><textarea id="docNotes" class="form-control" rows="3"></textarea></div>
+            <div style="background:#f8fafc; padding:1rem; border-radius:8px; border:1px solid var(--border);">
+                <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;"><span>Subtotal:</span><span id="calcSub">₹0.00</span></div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;"><span>GST:</span><span id="calcGst">₹0.00</span></div>
+                <div id="discountRow" style="display:flex; justify-content:space-between; margin-bottom:0.5rem;"><span>Discount:</span><span id="calcDiscount">₹0.00</span></div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem; font-weight:bold; font-size:1.1rem;"><span>Grand Total:</span><span id="calcGrand">₹0.00</span></div>
+                <div id="advSection" style="margin-top:1rem; padding-top:1rem; border-top:1px dashed var(--border); display:none;">
+                    <div style="display:flex; justify-content:space-between; color:var(--success);"><span>Total Advance:</span><span id="calcAdv">₹0.00</span></div>
+                    <div style="display:flex; justify-content:space-between; font-weight:bold; color:var(--danger); margin-top:0.5rem;"><span>Balance Due:</span><span id="calcBal">₹0.00</span></div>
+                    <button type="button" class="btn btn-outline btn-sm btn-block" id="btnAddAdvToDoc" style="margin-top:1rem;">+ Add Advance Payment</button>
+                    <div id="advListContainer" style="margin-top:1rem;"></div>
+                </div>
+            </div>
+        </div>
+        <div style="margin-top:1.5rem;padding:1rem;border:1px dashed var(--border);border-radius:8px"><h3>🖨️ Show on Bill</h3>
+            <div class="opt-row"><label><input type="checkbox" id="optShip"> Shipping Address</label><label><input type="checkbox" id="optBank"> Bank Details</label><label><input type="checkbox" id="optWords"> Amount in Words</label><label><input type="checkbox" id="optHist"> Payment History</label></div>
+            <div id="shipWrap" style="display:none"><label style="font-size:.85rem;font-weight:600">Shipping Address</label><textarea id="docShip" class="form-control" rows="5"></textarea><button type="button" class="btn btn-outline btn-sm" id="btnShipSame" style="margin-top:.4rem">Use Party Address</button></div></div>
+        <div style="margin-top:1.5rem; display:flex; flex-direction:column; gap:0.75rem;">
+            <button type="button" class="btn btn-primary" id="btnSaveDoc">💾 Save Document</button>
+            <button type="button" class="btn btn-info" id="btnPreviewDoc">📁 Save as Project</button>
+            <button type="button" class="btn btn-success" id="btnPrintDoc">🖨️ Print / PDF</button>
+            <button type="button" class="btn btn-whatsapp" id="btnSendWhatsApp"> Send via WhatsApp</button>
+        </div>
+    </div>
+</section>
+</main>
+</div>
+
+<div class="modal-overlay" id="invWarnModal"><div class="modal"><div class="modal-header"><h3>Quotation Required</h3><button type="button" class="modal-close" data-close="invWarnModal">&times;</button></div>
+    <p style="margin-bottom:1rem">An invoice cannot be generated without a quotation. Select an existing quotation or create a new one.</p>
+    <button type="button" class="btn btn-primary btn-block" id="btnWarnPick">Select Existing Quotation</button>
+    <button type="button" class="btn btn-success btn-block" id="btnWarnNew">Create New Quotation</button></div></div>
+
+<div class="modal-overlay" id="afterQuoModal"><div class="modal"><div class="modal-header"><h3>Quotation Saved</h3><button type="button" class="modal-close" data-close="afterQuoModal">&times;</button></div>
+    <p style="margin-bottom:1rem" id="afterQuoNum"></p>
+    <button type="button" class="btn btn-primary btn-block" id="btnAfterConvert">Convert into Invoice</button>
+    <button type="button" class="btn btn-outline btn-block" data-close="afterQuoModal">Later</button></div></div>
+
+<div class="modal-overlay" id="delModal"><div class="modal"><div class="modal-header"><h3 id="delTitle">Delete</h3><button type="button" class="modal-close" data-close="delModal">&times;</button></div>
+    <p id="delInfo" style="margin-bottom:.8rem;font-weight:600"></p>
+    <div class="form-group"><label>Remarks *</label><textarea id="delRemarks" class="form-control" rows="3"></textarea></div>
+    <button type="button" class="btn btn-danger btn-block" id="btnDelGo">Send WhatsApp and Delete</button></div></div>
+
+<div class="modal-overlay" id="projModal"><div class="modal"><div class="modal-header"><h3 id="projTitle">Project</h3><button type="button" class="modal-close" data-close="projModal">&times;</button></div>
+    <div id="projItems" style="margin-bottom:1rem"></div>
+    <div class="form-group"><label>Party / Customer *</label><div class="inline-add"><select id="projParty" class="form-control"></select><button type="button" class="btn btn-success btn-sm" id="btnProjAddParty">+ Add</button></div></div>
+    <button type="button" class="btn btn-primary btn-block" id="btnProjQuo">Create Quotation</button></div></div>
+
+<div class="modal-overlay" id="noteModal"><div class="modal"><div class="modal-header"><h3>Note</h3><button type="button" class="modal-close" data-close="noteModal">&times;</button></div>
+    <div class="form-group"><label>Title</label><input type="text" id="ntTitle" class="form-control"></div>
+    <div class="form-group"><label>Note</label><textarea id="ntText" class="form-control" rows="10"></textarea></div>
+    <button type="button" class="btn btn-primary btn-block" id="btnSaveNote">Save Note</button>
+    <button type="button" class="btn btn-danger btn-block" id="btnDelNote">Delete Note</button></div></div>
+
+<div class="modal-overlay" id="imgModal"><div class="modal"><div class="modal-header"><h3 id="imgTitle">Image</h3><button type="button" class="modal-close" data-close="imgModal">&times;</button></div><img id="imgView" style="width:100%;border-radius:8px" alt=""></div></div>
+
+<div class="modal-overlay" id="partyModal"><div class="modal"><div class="modal-header"><h3 id="partyModalTitle">Add Party</h3><button type="button" class="modal-close" data-close="partyModal">&times;</button></div>
+    <button type="button" class="btn btn-outline btn-block" id="btnImportContact">📇 Import from Contacts</button><input type="file" id="vcfFile" accept=".vcf,text/vcard,text/x-vcard" style="display:none">
+    <div class="form-group" style="margin-top:.8rem"><label>Name *</label><input type="text" id="pName" class="form-control"></div>
+    <div class="form-group"><label>Phone *</label><input type="tel" id="pPhone" class="form-control"></div>
+    <div class="form-group"><label>Email</label><input type="email" id="pEmail" class="form-control"></div>
+    <div class="form-group"><label>Address</label><textarea id="pAddr" class="form-control" rows="2"></textarea></div>
+    <button type="button" class="btn btn-primary btn-block" id="btnSaveParty">Save Party</button>
+    <button type="button" class="btn btn-success btn-block" id="btnSavePartyContinue" style="margin-top:0.5rem; display:none;">✓ Save and Continue</button>
+</div></div>
+
+<div class="modal-overlay" id="itemModal"><div class="modal"><div class="modal-header"><h3 id="itemModalTitle">Add Item</h3><button type="button" class="modal-close" data-close="itemModal">&times;</button></div>
+    <div class="form-group"><label>Item Title</label><input type="text" id="iTitle" class="form-control"></div>
+    <div class="form-grid"><div class="form-group"><label>Item Name *</label><input type="text" id="iName" class="form-control"></div>
+    <div class="form-group"><label>Price *</label><input type="number" id="iPrice" class="form-control" step="0.01"></div>
+    <div class="form-group"><label>Stock</label><input type="number" id="iStock" class="form-control"></div>
+    <div class="form-group"><label>GST %</label><input type="number" id="iGst" class="form-control" value="18"></div></div>
+    <div class="form-group"><label>Description (Multi-line)</label><textarea id="iDesc" class="form-control" rows="3"></textarea></div>
+    <div class="form-group"><label>More Info (Warranty, Quality, Grade)</label><textarea id="iMoreInfo" class="form-control" rows="3"></textarea></div>
+    <button type="button" class="btn btn-primary btn-block" id="btnSaveItem">Save as Product</button>
+    <button type="button" class="btn btn-warning btn-block" id="btnSaveAsTemplate" style="margin-top:0.5rem;">📋 Save as Project</button>
+    <button type="button" class="btn btn-success btn-block" id="btnSaveAndContinue" style="margin-top:0.5rem; display:none;">✓ Save and Continue</button>
+</div></div>
+
+<div class="modal-overlay" id="docItemModal"><div class="modal"><div class="modal-header"><h3>Add Item</h3><button type="button" class="modal-close" data-close="docItemModal">&times;</button></div>
+    <div class="form-group"><label>Select from Inventory</label><select id="diSelect" class="form-control"><option value="">-- New Item --</option></select></div>
+    <div class="form-group"><label>Item Title</label><input type="text" id="diTitle" class="form-control"></div>
+    <div class="form-grid"><div class="form-group"><label>Item Name *</label><input type="text" id="diName" class="form-control"></div>
+    <div class="form-group"><label>Quantity *</label><input type="number" id="diQty" class="form-control" value="1" min="1"></div>
+    <div class="form-group"><label>Price *</label><input type="number" id="diPrice" class="form-control" step="0.01"></div>
+    <div class="form-group"><label>Stock</label><input type="number" id="diStock" class="form-control"></div>
+    <div class="form-group"><label>GST %</label><input type="number" id="diGst" class="form-control" value="18"></div></div>
+    <div class="form-group"><label>Description (Multi-line)</label><textarea id="diDesc" class="form-control" rows="3"></textarea></div>
+    <div class="form-group"><label>More Info (Warranty, Quality, Grade)</label><textarea id="diMore" class="form-control" rows="3"></textarea></div>
+    <label class="chk"><input type="checkbox" id="diSave" checked> Save to Products</label>
+    <button type="button" class="btn btn-primary btn-block" id="btnAddDi">Add Item</button>
+    <button type="button" class="btn btn-warning btn-block" id="btnDiProject">📁 Save as Project</button>
+    <button type="button" id="btnAddToInventory" style="display:none"></button>
+</div></div>
+
+<div class="modal-overlay" id="pickTempModal"><div class="modal"><div class="modal-header"><h3>Pick from Projects</h3><button type="button" class="modal-close" data-close="pickTempModal">&times;</button></div>
+    
+    <div class="table-wrap"><table><thead><tr><th>Project</th><th>Items</th><th>Action</th></tr></thead>
+    <tbody id="pickTempBody"><tr><td colspan="3" style="text-align:center; padding:1rem;">No projects</td></tr></tbody></table></div>
+</div></div>
+
+<div class="modal-overlay" id="pickQuoModal"><div class="modal"><div class="modal-header"><h3>Select from Quotations</h3><button type="button" class="modal-close" data-close="pickQuoModal">&times;</button></div>
+    
+    <div class="table-wrap"><table><thead><tr><th>Quo #</th><th>Party</th><th>Amount</th><th>Action</th></tr></thead>
+    <tbody id="pickQuoBody"><tr><td colspan="4" style="text-align:center; padding:1rem;">No quotations</td></tr></tbody></table></div>
+</div></div>
+
+<div class="modal-overlay" id="previewModal"><div class="modal" style="max-width:800px;"><div class="modal-header"><h3>Document Preview</h3><button type="button" class="modal-close" data-close="previewModal">&times;</button></div>
+    <div id="previewContent"></div>
+    <div style="margin-top:1rem; display:flex; gap:1rem; flex-wrap:wrap;">
+        <button type="button" class="btn btn-success" id="btnPrintFromPreview">🖨️ Print / Download PDF</button>
+        <button type="button" class="btn btn-outline" data-close="previewModal">Close</button>
+    </div>
+</div></div>
+
+<div class="modal-overlay" id="exploreModal"><div class="modal" style="max-width:400px;"><div class="modal-header"><h3 id="exploreTitle">Explore Options</h3><button type="button" class="modal-close" data-close="exploreModal">&times;</button></div>
+    <div id="exploreOptions"></div>
+</div></div>
+
+<div class="modal-overlay" id="advModal"><div class="modal"><div class="modal-header"><h3>Add Advance Payment</h3><button type="button" class="modal-close" data-close="advModal">&times;</button></div>
+    <div class="form-grid"><div class="form-group"><label>Amount () *</label><input type="number" id="aAmt" class="form-control" step="0.01"></div>
+    <div class="form-group"><label>Date *</label><input type="date" id="aDate" class="form-control"></div>
+    <div class="form-group"><label>Mode</label><select id="aMode" class="form-control"><option>UPI</option><option>Cash</option><option>Bank Transfer</option><option>Card</option><option>Cheque</option></select></div>
+    <div class="form-group"><label>UTR / Transaction ID</label><input type="text" id="aUtr" class="form-control"></div>
+    <div class="form-group" style="grid-column:1/-1;"><label>Payment Screenshot</label><input type="file" id="aScreen" class="form-control" accept="image/*"></div>
+    <div class="form-group" style="grid-column:1/-1;"><img id="aScreenPreview" style="max-width:120px; border-radius:6px; display:none; border:1px solid var(--border);"></div></div>
+    <button type="button" class="btn btn-primary btn-block" id="btnSaveAdv">Add Payment</button></div></div>
+
+<div class="modal-overlay" id="ledPayModal"><div class="modal"><div class="modal-header"><h3>Record Payment</h3><button type="button" class="modal-close" data-close="ledPayModal">&times;</button></div>
+    <div class="form-group"><label>Amount *</label><input type="number" id="lpAmt" class="form-control" step="0.01"></div>
+    <div class="form-group"><label>Date</label><input type="date" id="lpDate" class="form-control"></div>
+    <div class="form-group"><label>Mode</label><select id="lpMode" class="form-control"><option>UPI</option><option>Cash</option><option>Bank</option></select></div>
+    <button type="button" class="btn btn-success btn-block" id="btnSaveLedPay">Record Payment</button></div></div>
+
+<script>
+function safeGet(k) { try { return JSON.parse(localStorage.getItem(k)) || []; } catch(e) { return []; } }
+function safeSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} }
+
+var DB = { 
+    parties: safeGet('bp_parties'), items: safeGet('bp_items'), invoices: safeGet('bp_invoices'), 
+    quotations: safeGet('bp_quotations'), templates: safeGet('bp_templates'),
+    purchases: safeGet('bp_purchases'), payments: safeGet('bp_payments'), 
+    settings: safeGet('bp_settings') || { compName: '', compPhone: '', compEmail: '', compGst: '' } 
+};
+var currentDocType = 'invoice', currentDocItems = [], currentDocAdvances = [], currentDiscount = 0, editingId = null, currentLedgerParty = null, editingItemId = null, continueToDoc = 0, exploreContext = null, currentScreenBase64 = '', editingInvoiceId = null;
+
+var $ = function(id) { return document.getElementById(id); };
+var toast = function(msg, type) {
+    type = type || 'success';
+    var t = document.createElement('div'); t.className = 'toast ' + type; 
+    t.textContent = (type === 'success' ? '✅ ' : '❌ ') + msg; 
+    $('toastContainer').appendChild(t); setTimeout(function() { t.remove(); }, 3000); 
+};
+var openModal = function(id) { $(id).classList.add('active'); };
+var closeModal = function(id) { $(id).classList.remove('active'); };
+var fmt = function(n) { return '₹' + parseFloat(n || 0).toFixed(2); };
+var today = function() { return new Date().toISOString().split('T')[0]; };
+var getPartyById = function(id) { for(var i=0; i<DB.parties.length; i++) { if(DB.parties[i].id === id) return DB.parties[i]; } return null; };
+var getItemById = function(id) { for(var i=0; i<DB.items.length; i++) { if(DB.items[i].id === id) return DB.items[i]; } return null; };
+var getPartyBalance = function(partyId) { 
+    var debits = 0, credits = 0;
+    for(var i=0; i<DB.invoices.length; i++) { if(DB.invoices[i].partyId === partyId) debits += DB.invoices[i].grandTotal; }
+    for(var i=0; i<DB.payments.length; i++) { if(DB.payments[i].partyId === partyId) credits += DB.payments[i].amount; }
+    return debits - credits; 
+};
+var hasPendingQuotation = function(partyId) {
+    for(var i=0; i<DB.quotations.length; i++) {
+        if(DB.quotations[i].partyId === partyId && DB.quotations[i].status !== 'Converted') {
+            return DB.quotations[i];
+        }
+    }
+    return null;
+};
+
+document.addEventListener('DOMContentLoaded', function() { initApp(); });
+var navBtns = document.querySelectorAll('.nav-btn');
+for (var i = 0; i < navBtns.length; i++) {
+    navBtns[i].addEventListener('click', function() {
+        for (var j = 0; j < navBtns.length; j++) navBtns[j].classList.remove('active');
+        this.classList.add('active');
+        var sections = document.querySelectorAll('.section');
+        for (var k = 0; k < sections.length; k++) sections[k].classList.remove('active');
+        var target = this.getAttribute('data-target');
+        if ($(target)) $(target).classList.add('active');
+        $('sidebar').classList.remove('open');
+        if (target === 'dashboard') updateDashboard();
+        if (target === 'ledger') initLedger();
+        if (target === 'templates') renderTemplates();
+    });
+}
+$('mobileToggle').addEventListener('click', function() { $('sidebar').classList.toggle('open'); });
+$('backBtn').addEventListener('click', function() { 
+    $('sidebar').classList.remove('open');
+    navigateTo('dashboard');
+});
+var closeBtns = document.querySelectorAll('[data-close]');
+for (var m = 0; m < closeBtns.length; m++) { closeBtns[m].addEventListener('click', function() { closeModal(this.getAttribute('data-close')); }); }
+$('btnLogout').addEventListener('click', function() { if(confirm('Clear all data and reset app?')) { localStorage.clear(); location.reload(); } });
+
+function navigateTo(targetId) {
+    var navBtns = document.querySelectorAll('.nav-btn');
+    for (var j = 0; j < navBtns.length; j++) {
+        navBtns[j].classList.remove('active');
+        if(navBtns[j].getAttribute('data-target') === targetId) navBtns[j].classList.add('active');
+    }
+    var sections = document.querySelectorAll('.section');
+    for (var k = 0; k < sections.length; k++) sections[k].classList.remove('active');
+    if($(targetId)) $(targetId).classList.add('active');
+    if (targetId === 'dashboard') updateDashboard();
+    if (targetId === 'ledger') initLedger();
+    if (targetId === 'templates') renderTemplates();
+}
+
+function updateDashboard() { 
+    var totalSales = 0, totalPending = 0;
+    for(var i=0; i<DB.invoices.length; i++) { totalSales += DB.invoices[i].grandTotal; totalPending += DB.invoices[i].balance; }
+    $('statSales').textContent = fmt(totalSales); $('statInv').textContent = DB.invoices.length; 
+    $('statParties').textContent = DB.parties.length; $('statPending').textContent = fmt(totalPending); 
+    var tb = $('dashRecentInv'); 
+    if(DB.invoices.length === 0) { tb.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:1rem;">No data</td></tr>'; } 
+    else { 
+        var html = ''; var start = Math.max(0, DB.invoices.length - 5);
+        for(var i = DB.invoices.length - 1; i >= start; i--) {
+            var inv = DB.invoices[i]; var p = getPartyById(inv.partyId);
+            var sc = inv.balance <= 0 ? 'var(--primary-light)' : 'var(--warning-light)';
+            var tc = inv.balance <= 0 ? 'var(--primary-dark)' : '#86198f';
+            html += '<tr><td>' + inv.number + '</td><td>' + (p ? p.name : '-') + '</td><td>' + inv.date + '</td><td>' + fmt(inv.grandTotal) + '</td><td><span style="background:'+sc+'; color:'+tc+'; padding:0.25rem 0.6rem; border-radius:20px; font-size:0.75rem; font-weight:600;">' + (inv.balance <= 0 ? 'Paid' : 'Pending') + '</span></td></tr>';
+        }
+        tb.innerHTML = html;
+    } 
+    renderAllTables(); 
+}
+
+function renderAllTables() { 
+    var ptb = $('partyTableBody'); 
+    ptb.innerHTML = DB.parties.length ? DB.parties.map(function(p) { return '<tr><td>' + p.name + '</td><td>' + p.phone + '</td><td>' + (p.email||'-') + '</td><td>' + fmt(getPartyBalance(p.id)) + '</td><td style="position:relative;"><button class="btn btn-info btn-sm explore-btn" data-type="party" data-id="' + p.id + '">🔍 Explore</button></td></tr>'; }).join('') : '<tr><td colspan="5" style="text-align:center; padding:1rem;">No parties</td></tr>';
+    
+    var itb = $('itemTableBody'); 
+    itb.innerHTML = DB.items.length ? DB.items.map(function(item) { return '<tr><td>' + item.name + '</td><td>' + fmt(item.price) + '</td><td>' + item.stock + '</td><td>' + item.gst + '%</td><td><button class="btn btn-outline btn-sm btn-edit-item" data-id="' + item.id + '">✏️ Edit</button> <button class="btn btn-danger btn-sm btn-del-item" data-id="' + item.id + '">Del</button></td></tr>'; }).join('') : '<tr><td colspan="5" style="text-align:center; padding:1rem;">No items</td></tr>';
+    
+    var invtb = $('invTableBody'); 
+    invtb.innerHTML = DB.invoices.length ? DB.invoices.map(function(inv) { var p = getPartyById(inv.partyId); return '<tr><td>' + inv.number + '</td><td>' + (p?p.name:'-') + '</td><td>' + inv.date + '</td><td>' + fmt(inv.grandTotal) + '</td><td>' + fmt(inv.balance) + '</td><td style="position:relative;"><button class="btn btn-info btn-sm explore-btn" data-type="invoice" data-id="' + inv.id + '">🔍 Explore</button></td></tr>'; }).join('') : '<tr><td colspan="6" style="text-align:center; padding:1rem;">No invoices</td></tr>';
+    
+    var qtb = $('quoTableBody'); 
+    qtb.innerHTML = DB.quotations.length ? DB.quotations.map(function(q) { 
+        var p = getPartyById(q.partyId); 
+        var statusBadge = q.status === 'Converted' ? '<span style="background:var(--primary-light); color:var(--primary-dark); padding:0.25rem 0.6rem; border-radius:20px; font-size:0.75rem; font-weight:600;">Converted</span>' : '<span style="background:var(--warning-light); color:#86198f; padding:0.25rem 0.6rem; border-radius:20px; font-size:0.75rem; font-weight:600;">Pending</span>';
+        return '<tr><td>' + q.number + '</td><td>' + (p?p.name:'-') + '</td><td>' + q.date + '</td><td>' + fmt(q.grandTotal) + '</td><td>' + statusBadge + '</td><td style="position:relative;"><button class="btn btn-info btn-sm explore-btn" data-type="quotation" data-id="' + q.id + '">🔍 Explore</button></td></tr>'; 
+    }).join('') : '<tr><td colspan="6" style="text-align:center; padding:1rem;">No quotations</td></tr>';
+}
+
+function renderTemplates() {
+    var tb = $('tempTableBody');
+    if (DB.templates.length === 0) { tb.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:1rem;">No projects</td></tr>'; return; }
+    tb.innerHTML = DB.templates.map(function(t) {
+        var validItems = t.items.filter(function(item) { return getItemById(item.itemId); });
+        return '<tr><td><strong>' + t.name + '</strong></td><td>' + validItems.length + ' items</td><td>' + fmt(t.total) + '</td><td>' + t.date + '</td><td><button class="btn btn-primary btn-sm btn-use-temp" data-id="' + t.id + '">Use</button> <button class="btn btn-danger btn-sm btn-del-temp" data-id="' + t.id + '">Del</button></td></tr>';
+    }).join('');
+}
+
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('explore-btn')) {
+        e.stopPropagation();
+        var type = e.target.getAttribute('data-type');
+        var id = e.target.getAttribute('data-id');
+        showExploreMenu(type, id);
+    }
+});
+
+function showExploreMenu(type, id) {
+    exploreContext = { type: type, id: id };
+    var optionsHtml = '';
+    
+    if (type === 'party') {
+        var p = getPartyById(id);
+        if (!p) return;
+        $('exploreTitle').textContent = 'Explore: ' + p.name;
+        optionsHtml = '<div class="explore-menu-item" data-action="edit-party" data-id="' + id + '">✏️ Edit Party</div>';
+        optionsHtml += '<div class="explore-menu-item" data-action="call" data-phone="' + p.phone + '">📞 Call ' + p.phone + '</div>';
+        optionsHtml += '<div class="explore-menu-item" data-action="whatsapp" data-phone="' + p.phone + '" data-name="' + p.name + '">💬 WhatsApp</div>';
+        
+        var pendingQuo = hasPendingQuotation(id);
+        if (pendingQuo) {
+            optionsHtml += '<div class="explore-menu-item" data-action="convert-quotation" data-id="' + pendingQuo.id + '">🧾 Convert Quotation to Invoice (' + pendingQuo.number + ')</div>';
+            optionsHtml += '<div class="explore-menu-item" data-action="send-quotation" data-id="' + id + '">📄 Send Quotation</div>';
+        } else {
+            optionsHtml += '<div class="explore-menu-item" data-action="send-quotation" data-id="' + id + '">📄 Create New Quotation</div>';
+            optionsHtml += '<div class="explore-menu-item" data-action="send-invoice" data-id="' + id + '">🧾 Create New Invoice</div>';
+        }
+        
+        optionsHtml += '<div class="explore-menu-item" data-action="update-payment" data-id="' + id + '">💰 Update Payment</div>';
+        optionsHtml += '<div class="explore-menu-item" data-action="send-reminder" data-id="' + id + '">🔔 Send Payment Reminder</div>';
+        optionsHtml += '<div class="explore-menu-item danger" data-action="delete-party" data-id="' + id + '">️ Delete Party</div>';
+    } else if (type === 'invoice') {
+        var inv = null; for(var i=0; i<DB.invoices.length; i++) { if(DB.invoices[i].id === id) inv = DB.invoices[i]; }
+        if (!inv) return;
+        var p = getPartyById(inv.partyId);
+        $('exploreTitle').textContent = 'Explore: ' + inv.number;
+        optionsHtml = '<div class="explore-menu-item" data-action="create-new-invoice"> Create New Invoice</div>';
+        optionsHtml += '<div class="explore-menu-item" data-action="call" data-phone="' + (p?p.phone:'') + '">📞 Call Party</div>';
+        optionsHtml += '<div class="explore-menu-item" data-action="update-payment" data-id="' + id + '">💰 Update Payment</div>';
+        optionsHtml += '<div class="explore-menu-item" data-action="send-reminder" data-id="' + id + '">🔔 Send Payment Reminder</div>';
+        optionsHtml += '<div class="explore-menu-item" data-action="preview-doc" data-type="invoice" data-id="' + id + '">👁️ Preview</div>';
+        optionsHtml += '<div class="explore-menu-item" data-action="print-doc" data-type="invoice" data-id="' + id + '">🖨️ Print / PDF</div>';
+        optionsHtml += '<div class="explore-menu-item" data-action="whatsapp-invoice" data-phone="' + (p?p.phone:'') + '" data-name="' + (p?p.name:'') + '" data-amount="' + fmt(inv.grandTotal) + '" data-number="' + inv.number + '">💬 Send on WhatsApp</div>';
+        optionsHtml += '<div class="explore-menu-item danger" data-action="delete-invoice" data-id="' + id + '">🗑️ Delete Invoice</div>';
+    } else if (type === 'quotation') {
+        var q = null; for(var i=0; i<DB.quotations.length; i++) { if(DB.quotations[i].id === id) q = DB.quotations[i]; }
+        if (!q) return;
+        var p = getPartyById(q.partyId);
+        $('exploreTitle').textContent = 'Explore: ' + q.number;
+        
+        if (q.status !== 'Converted') {
+            optionsHtml = '<div class="explore-menu-item" data-action="convert-to-invoice" data-id="' + id + '">🧾 Convert to Invoice</div>';
+        } else {
+            optionsHtml = '<div class="explore-menu-item" data-action="create-new-quotation">📄 Create New Quotation</div>';
+        }
+        
+        optionsHtml += '<div class="explore-menu-item" data-action="call" data-phone="' + (p?p.phone:'') + '">📞 Call Party</div>';
+        optionsHtml += '<div class="explore-menu-item" data-action="preview-doc" data-type="quotation" data-id="' + id + '">👁️ Preview</div>';
+        optionsHtml += '<div class="explore-menu-item" data-action="print-doc" data-type="quotation" data-id="' + id + '">🖨️ Print / PDF</div>';
+        optionsHtml += '<div class="explore-menu-item" data-action="whatsapp-quotation" data-phone="' + (p?p.phone:'') + '" data-name="' + (p?p.name:'') + '" data-amount="' + fmt(q.grandTotal) + '" data-number="' + q.number + '"> Send on WhatsApp</div>';
+        optionsHtml += '<div class="explore-menu-item danger" data-action="delete-quotation" data-id="' + id + '">🗑️ Delete Quotation</div>';
+    }
+    
+    $('exploreOptions').innerHTML = optionsHtml;
+    openModal('exploreModal');
+}
+
+document.addEventListener('click', function(e) {
+    var action = e.target.getAttribute('data-action');
+    if (!action) return;
+    
+    if (action === 'edit-party') {
+        var p = getPartyById(e.target.getAttribute('data-id'));
+        if(p) { editingId = p.id; $('partyModalTitle').textContent = 'Edit Party'; $('pName').value = p.name; $('pPhone').value = p.phone; $('pEmail').value = p.email || ''; $('pAddr').value = p.addr || ''; $('btnSavePartyContinue').style.display = 'none'; $('btnSaveParty').style.display = 'flex'; openModal('partyModal'); }
+        closeModal('exploreModal');
+    }
+    else if (action === 'call') {
+        var phone = e.target.getAttribute('data-phone');
+        if (phone) window.location.href = 'tel:' + phone;
+        closeModal('exploreModal');
+    }
+    else if (action === 'whatsapp') {
+        var phone = e.target.getAttribute('data-phone');
+        var name = e.target.getAttribute('data-name');
+        var companyName = DB.settings.compName || 'our company';
+        var message = 'Hi ' + name + ', welcome to ' + companyName + '! How can we help you today?';
+        window.open('https://wa.me/91' + phone.replace(/\D/g,'') + '?text=' + encodeURIComponent(message), '_blank');
+        closeModal('exploreModal');
+    }
+    else if (action === 'send-quotation') {
+        var partyId = e.target.getAttribute('data-id');
+        startDocForm('quotation');
+        $('docParty').value = partyId;
+        closeModal('exploreModal');
+    }
+    else if (action === 'send-invoice') {
+        var partyId = e.target.getAttribute('data-id');
+        startDocForm('invoice');
+        $('docParty').value = partyId;
+        closeModal('exploreModal');
+    }
+    else if (action === 'convert-quotation') {
+        var qId = e.target.getAttribute('data-id');
+        var q = null; for(var i=0; i<DB.quotations.length; i++) { if(DB.quotations[i].id === qId) q = DB.quotations[i]; }
+        if(q) {
+            var newInv = { 
+                id: Date.now().toString(), number: 'INV-' + Date.now().toString().slice(-6), date: today(), type: 'invoice', partyId: q.partyId,
+                items: JSON.parse(JSON.stringify(q.items)), advances: [], discount: q.discount || 0, subtotal: q.subtotal || 0, gstTotal: q.gstTotal || 0, grandTotal: q.grandTotal, totalAdvance: 0, balance: q.grandTotal, notes: q.notes || ''
+            }; 
+            DB.invoices.push(newInv); 
+            q.status = 'Converted';
+            safeSet('bp_invoices', DB.invoices); safeSet('bp_quotations', DB.quotations); 
+            toast('Quotation converted to Invoice!'); 
+            navigateTo('sales'); 
+        }
+        closeModal('exploreModal');
+    }
+    else if (action === 'update-payment') {
+        var id = e.target.getAttribute('data-id');
+        var inv = null;
+        for(var i=0; i<DB.invoices.length; i++) { if(DB.invoices[i].id === id) { inv = DB.invoices[i]; break; } }
+        if (!inv) {
+            var partyId = id;
+            var pendingInvoices = DB.invoices.filter(function(inv) { return inv.partyId === partyId && inv.balance > 0; });
+            if (pendingInvoices.length === 0) { toast('No pending invoices for this party', 'error'); closeModal('exploreModal'); return; }
+            inv = pendingInvoices[pendingInvoices.length - 1];
+        }
+        editingInvoiceId = inv.id;
+        currentDocType = 'invoice';
+        currentDocItems = JSON.parse(JSON.stringify(inv.items));
+        currentDocAdvances = JSON.parse(JSON.stringify(inv.advances || []));
+        currentDiscount = inv.discount || 0;
+        $('docFormTitle').textContent = 'Update Payment: ' + inv.number;
+        $('docDate').value = inv.date;
+        $('docRef').value = inv.number;
+        $('docNotes').value = inv.notes || ''; setOpts(inv);
+        $('advSection').style.display = 'block';
+        $('discountRow').style.display = 'none';
+        var pSel = $('docParty');
+        pSel.innerHTML = '<option value="">-- Select Party --</option>' + DB.parties.map(function(p) { return '<option value="' + p.id + '">' + p.name + '</option>'; }).join('');
+        pSel.value = inv.partyId;
+        pSel.disabled = true;
+        renderDocItems();
+        renderAdvList();
+        closeModal('exploreModal');
+        navigateTo('docForm');
+        toast('Invoice opened in edit mode. Update advances and save.');
+    }
+    else if (action === 'send-reminder') {
+        var id = e.target.getAttribute('data-id');
+        var inv = null;
+        for(var i=0; i<DB.invoices.length; i++) { if(DB.invoices[i].id === id) { inv = DB.invoices[i]; break; } }
+        if (!inv) {
+            var partyId = id;
+            var p = getPartyById(partyId);
+            if (!p) return;
+            var balance = getPartyBalance(partyId);
+            if (balance <= 0) { toast('No pending payment', 'error'); closeModal('exploreModal'); return; }
+            var companyName = DB.settings.compName || 'our company';
+            var message = 'Hi ' + p.name + ', this is a gentle reminder from ' + companyName + '. Your pending balance is ' + fmt(balance) + '. Please clear it at your earliest convenience. Thank you!';
+            window.open('https://wa.me/91' + p.phone.replace(/\D/g,'') + '?text=' + encodeURIComponent(message), '_blank');
+            closeModal('exploreModal');
+            toast('Payment reminder sent!');
+            return;
+        }
+        var p = getPartyById(inv.partyId);
+        if (!p) { toast('Party not found', 'error'); closeModal('exploreModal'); return; }
+        if (inv.balance <= 0) { toast('Invoice already paid', 'error'); closeModal('exploreModal'); return; }
+        var companyName = DB.settings.compName || 'our company';
+        var message = 'Hi ' + p.name + ', this is a gentle reminder from ' + companyName + ' regarding Invoice #' + inv.number + ' dated ' + inv.date + '. Your remaining balance is ' + fmt(inv.balance) + ' out of ' + fmt(inv.grandTotal) + '. Please clear the payment at your earliest convenience. Thank you!';
+        window.open('https://wa.me/91' + p.phone.replace(/\D/g,'') + '?text=' + encodeURIComponent(message), '_blank');
+        closeModal('exploreModal');
+        toast('Payment reminder sent!');
+    }
+    else if (action === 'delete-party') {
+        var id = e.target.getAttribute('data-id');
+        if (confirm('Delete this party?')) {
+            DB.parties = DB.parties.filter(function(p) { return p.id !== id; });
+            safeSet('bp_parties', DB.parties);
+            updateDashboard();
+            toast('Party deleted');
+        }
+        closeModal('exploreModal');
+    }
+    else if (action === 'create-new-invoice') {
+        startDocForm('invoice');
+        closeModal('exploreModal');
+    }
+    else if (action === 'create-new-quotation') {
+        startDocForm('quotation');
+        closeModal('exploreModal');
+    }
+    else if (action === 'convert-to-invoice') {
+        var qId = e.target.getAttribute('data-id');
+        var qIndex = -1;
+        for(var i=0; i<DB.quotations.length; i++) { if(DB.quotations[i].id === qId) { qIndex = i; break; } }
+        if(qIndex !== -1) { 
+            var q = DB.quotations[qIndex];
+            var newInv = { 
+                id: Date.now().toString(), number: 'INV-' + Date.now().toString().slice(-6), date: today(), type: 'invoice', partyId: q.partyId,
+                items: JSON.parse(JSON.stringify(q.items)), advances: [], discount: q.discount || 0, subtotal: q.subtotal || 0, gstTotal: q.gstTotal || 0, grandTotal: q.grandTotal, totalAdvance: 0, balance: q.grandTotal, notes: q.notes || ''
+            }; 
+            DB.invoices.push(newInv); 
+            q.status = 'Converted';
+            safeSet('bp_invoices', DB.invoices); safeSet('bp_quotations', DB.quotations); 
+            toast('Converted to Invoice!'); 
+            navigateTo('sales'); 
+        }
+        closeModal('exploreModal');
+    }
+    else if (action === 'preview-doc') {
+        var type = e.target.getAttribute('data-type'); var id = e.target.getAttribute('data-id'); var doc = null;
+        if (type === 'invoice') { for(var i=0; i<DB.invoices.length; i++) { if(DB.invoices[i].id === id) doc = DB.invoices[i]; } } 
+        else { for(var i=0; i<DB.quotations.length; i++) { if(DB.quotations[i].id === id) doc = DB.quotations[i]; } }
+        if(doc) showPreview(doc, type);
+        closeModal('exploreModal');
+    }
+    else if (action === 'print-doc') {
+        var type = e.target.getAttribute('data-type'); var id = e.target.getAttribute('data-id'); var doc = null;
+        if (type === 'invoice') { for(var i=0; i<DB.invoices.length; i++) { if(DB.invoices[i].id === id) doc = DB.invoices[i]; } } 
+        else { for(var i=0; i<DB.quotations.length; i++) { if(DB.quotations[i].id === id) doc = DB.quotations[i]; } }
+        if(doc) printDocument(doc, type);
+        closeModal('exploreModal');
+    }
+    else if (action === 'whatsapp-invoice' || action === 'whatsapp-quotation') {
+        var phone = e.target.getAttribute('data-phone');
+        var name = e.target.getAttribute('data-name');
+        var amount = e.target.getAttribute('data-amount');
+        var number = e.target.getAttribute('data-number');
+        var companyName = DB.settings.compName || 'our company';
+        var docType = action === 'whatsapp-invoice' ? 'Invoice' : 'Quotation';
+        var message = 'Hi ' + name + ', please find your ' + docType + ' #' + number + ' from ' + companyName + ' for amount ' + amount + '. Thank you!';
+        window.open('https://wa.me/91' + phone.replace(/\D/g,'') + '?text=' + encodeURIComponent(message), '_blank');
+        closeModal('exploreModal');
+    }
+    else if (action === 'delete-invoice') {
+        var id = e.target.getAttribute('data-id');
+        if (confirm('Delete this invoice?')) {
+            DB.invoices = DB.invoices.filter(function(i) { return i.id !== id; });
+            safeSet('bp_invoices', DB.invoices);
+            updateDashboard();
+            toast('Invoice deleted');
+        }
+        closeModal('exploreModal');
+    }
+    else if (action === 'delete-quotation') {
+        var id = e.target.getAttribute('data-id');
+        if (confirm('Delete this quotation?')) {
+            DB.quotations = DB.quotations.filter(function(q) { return q.id !== id; });
+            safeSet('bp_quotations', DB.quotations);
+            updateDashboard();
+            toast('Quotation deleted');
+        }
+        closeModal('exploreModal');
+    }
+});
+
+function showPreview(doc, type) {
+    var p = getPartyById(doc.partyId);
+    var itemsHtml = doc.items.map(function(i) { return '<tr><td style="border:1px solid #ddd; padding:8px;">' + i.name + '</td><td style="border:1px solid #ddd; padding:8px;">' + i.qty + '</td><td style="border:1px solid #ddd; padding:8px;">' + fmt(i.price) + '</td><td style="border:1px solid #ddd; padding:8px;">' + i.gst + '%</td><td style="border:1px solid #ddd; padding:8px;">' + fmt(i.total) + '</td></tr>'; }).join('');
+    
+    var advancesHtml = '';
+    if (type === 'invoice' && doc.advances && doc.advances.length > 0) {
+        advancesHtml = '<h4 style="margin-top:1rem;">Advance Payments</h4><table style="width:100%;"><thead><tr><th style="border:1px solid #ddd; padding:8px;">Date</th><th style="border:1px solid #ddd; padding:8px;">Mode</th><th style="border:1px solid #ddd; padding:8px;">UTR</th><th style="border:1px solid #ddd; padding:8px;">Amount</th></tr></thead><tbody>';
+        doc.advances.forEach(function(a) {
+            advancesHtml += '<tr><td style="border:1px solid #ddd; padding:8px;">' + a.date + '</td><td style="border:1px solid #ddd; padding:8px;">' + a.mode + '</td><td style="border:1px solid #ddd; padding:8px;">' + (a.utr || '-') + '</td><td style="border:1px solid #ddd; padding:8px;">' + fmt(a.amt) + '</td></tr>';
+        });
+        advancesHtml += '</tbody></table>';
+    }
+    
+    var discountHtml = doc.discount > 0 ? '<p>Discount: ' + fmt(doc.discount) + '</p>' : '';
+    
+    var previewContent = '<div style="padding: 1rem; font-family: sans-serif;"><h1 style="color: var(--primary);">' + (DB.settings.compName || 'My Company') + '</h1><p>' + (DB.settings.compPhone || '') + ' | ' + (DB.settings.compEmail || '') + '</p><hr style="margin: 1rem 0;"><h2>' + (type === 'invoice' ? 'TAX INVOICE' : 'QUOTATION') + '</h2><p><strong>#:</strong> ' + doc.number + ' | <strong>Date:</strong> ' + doc.date + '</p><p><strong>Party:</strong> ' + (p?p.name:'Unknown') + ' (' + (p?p.phone:'') + ')</p><table style="width:100%; border-collapse: collapse; margin-top: 1rem;"><thead><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd; padding:8px;">Item</th><th style="border:1px solid #ddd; padding:8px;">Qty</th><th style="border:1px solid #ddd; padding:8px;">Price</th><th style="border:1px solid #ddd; padding:8px;">GST</th><th style="border:1px solid #ddd; padding:8px;">Total</th></tr></thead><tbody>' + itemsHtml + '</tbody></table><div style="margin-top: 1rem; text-align: right;"><p>Subtotal: ' + fmt(doc.subtotal) + '</p><p>GST: ' + fmt(doc.gstTotal) + '</p>' + discountHtml + '<h3>Grand Total: ' + fmt(doc.grandTotal) + '</h3></div>' + advancesHtml + (type === 'invoice' ? '<h3 style="color:#ef4444; margin-top:1rem;">Balance Due: ' + fmt(doc.balance) + '</h3>' : '') + '<p style="margin-top:2rem;"><strong>Notes:</strong> ' + (doc.notes || 'None') + '</p></div>';
+    $('previewContent').innerHTML = previewContent;
+    $('btnPrintFromPreview').onclick = function() { printDocument(doc, type); };
+    openModal('previewModal');
+}
+
+function startDocForm(type) { 
+    editingInvoiceId = null;
+    currentDocType = type; currentDocItems = []; currentDocAdvances = []; currentDiscount = 0;
+    $('docFormTitle').textContent = type === 'invoice' ? 'New Sales Invoice' : type === 'quotation' ? 'New Quotation' : 'New Purchase Order'; 
+    $('docDate').value = today(); $('docRef').value = (type === 'invoice' ? 'INV-' : type === 'quotation' ? 'QUO-' : 'PO-') + Date.now().toString().slice(-6); 
+    $('docNotes').value = ''; 
+    $('advSection').style.display = type === 'invoice' ? 'block' : 'none';
+    $('discountRow').style.display = type === 'quotation' ? 'flex' : 'none';
+    var pSel = $('docParty'); 
+    pSel.innerHTML = '<option value="">-- Select Party --</option>' + DB.parties.map(function(p) { return '<option value="' + p.id + '">' + p.name + '</option>'; }).join('');
+    pSel.disabled = false;
+    renderDocItems();
+    renderAdvList();
+    navigateTo('docForm');
+}
+$('btnNewInv').onclick = function() { startDocForm('invoice'); };
+$('btnNewQuo').onclick = function() { startDocForm('quotation'); };
+$('btnNewPur').onclick = function() { startDocForm('purchase'); };
+$('btnCancelDoc').onclick = function() { 
+    editingInvoiceId = null;
+    $('docParty').disabled = false;
+    $('discountRow').style.display = 'flex';
+    navigateTo('dashboard'); 
+};
+
+$('btnAddPartyInline').onclick = function() {
+    continueToDoc = 1;
+    editingId = null;
+    $('partyModalTitle').textContent = 'Add Party';
+    $('pName').value=''; $('pPhone').value=''; $('pEmail').value=''; $('pAddr').value='';
+    $('btnSaveParty').style.display = 'none';
+    $('btnSavePartyContinue').style.display = 'flex';
+    openModal('partyModal');
+};
+
+// LEDGER ADD PARTY - FLOW FIX
+$('btnLedgerAddParty').onclick = function() {
+    continueToDoc = 3; // 3 = ledger mode
+    editingId = null;
+    $('partyModalTitle').textContent = 'Add New Party';
+    $('pName').value=''; $('pPhone').value=''; $('pEmail').value=''; $('pAddr').value='';
+    $('btnSaveParty').style.display = 'none';
+    $('btnSavePartyContinue').style.display = 'flex';
+    openModal('partyModal');
+};
+
+$('btnFromQuo').onclick = function() {
+    var tb = $('pickQuoBody');
+    if (DB.quotations.length === 0) { tb.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:1rem;">No quotations</td></tr>'; }
+    else {
+        tb.innerHTML = DB.quotations.map(function(q) {
+            var p = getPartyById(q.partyId);
+            return '<tr><td>' + q.number + '</td><td>' + (p?p.name:'-') + '</td><td>' + fmt(q.grandTotal) + '</td><td><button class="btn btn-primary btn-sm btn-use-quo" data-id="' + q.id + '">Use</button></td></tr>';
+        }).join('');
+    }
+    openModal('pickQuoModal');
+};
+
+$('btnAddItemToDoc').onclick = function() { 
+    var sel = $('diSelect'); 
+    sel.innerHTML = '<option value="">-- Select an Item --</option>';
+    for(var i=0; i<DB.items.length; i++) {
+        sel.innerHTML += '<option value="' + DB.items[i].id + '" data-price="' + DB.items[i].price + '" data-gst="' + DB.items[i].gst + '">' + DB.items[i].name + '</option>';
+    }
+    $('diQty').value = 1; $('diPrice').value = ''; $('diGst').value = 18; 
+    openModal('docItemModal'); 
+};
+$('diSelect').onchange = function() { 
+    var opt = this.options[this.selectedIndex]; 
+    if(opt.value) { $('diPrice').value = opt.getAttribute('data-price'); $('diGst').value = opt.getAttribute('data-gst'); } 
+};
+$('btnAddDi').onclick = function() { 
+    var itemId = $('diSelect').value; if(!itemId) { toast('Select an item first', 'error'); return; } 
+    var foundItem = getItemById(itemId);
+    var qty = parseFloat($('diQty').value), price = parseFloat($('diPrice').value), gst = parseFloat($('diGst').value); 
+    if(!qty || !price) { toast('Fill qty and price', 'error'); return; } 
+    var sub = qty * price, gstAmt = (sub * gst)/100; 
+    currentDocItems.push({ itemId: itemId, name: foundItem.name, qty: qty, price: price, gst: gst, sub: sub, gstAmt: gstAmt, total: sub+gstAmt }); 
+    renderDocItems(); closeModal('docItemModal'); 
+};
+
+$('btnAddToInventory').onclick = function() {
+    continueToDoc = 2;
+    editingItemId = null;
+    $('itemModalTitle').textContent = 'Add Item';
+    $('iName').value=''; $('iPrice').value=$('diPrice').value || ''; $('iStock').value=''; $('iGst').value=$('diGst').value || 18; $('iDesc').value=''; $('iMoreInfo').value='';
+    $('btnSaveItem').style.display = 'none';
+    $('btnSaveAsTemplate').style.display = 'none';
+    $('btnSaveAndContinue').style.display = 'flex';
+    closeModal('docItemModal');
+    openModal('itemModal');
+};
+
+$('btnPickTemplate').onclick = function() {
+    var tb = $('pickTempBody');
+    if (DB.templates.length === 0) { tb.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:1rem;">No projects saved yet.</td></tr>'; }
+    else {
+        tb.innerHTML = DB.templates.map(function(t) {
+            var validItems = t.items.filter(function(item) { return getItemById(item.itemId); });
+            return '<tr><td><strong>' + t.name + '</strong></td><td>' + validItems.length + ' items</td><td><button class="btn btn-primary btn-sm btn-use-temp" data-id="' + t.id + '">Use</button></td></tr>';
+        }).join('');
+    }
+    openModal('pickTempModal');
+};
+
+function renderDocItems() { 
+    var tb = $('docItemsBody'); 
+    if(currentDocItems.length === 0) { tb.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:1rem;">No items added</td></tr>'; calcDocTotals(); return; } 
+    tb.innerHTML = currentDocItems.map(function(it, i) { return '<tr><td>' + it.name + '</td><td>' + it.qty + '</td><td>' + fmt(it.price) + '</td><td>' + it.gst + '%</td><td>' + fmt(it.total) + '</td><td><button class="btn btn-danger btn-sm btn-rm-di" data-i="' + i + '">X</button></td></tr>'; }).join(''); 
+    calcDocTotals(); 
+}
+$('docItemsBody').onclick = function(e) { if(e.target.classList.contains('btn-rm-di')) { currentDocItems.splice(parseInt(e.target.getAttribute('data-i')), 1); renderDocItems(); } };
+
+$('btnAddAdvToDoc').onclick = function() { 
+    $('aAmt').value=''; $('aDate').value=today(); $('aUtr').value=''; $('aScreen').value=''; 
+    $('aScreenPreview').style.display = 'none'; currentScreenBase64 = '';
+    openModal('advModal'); 
+};
+
+$('aScreen').onchange = function(e) {
+    if (e.target.files && e.target.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(ev) {
+            currentScreenBase64 = ev.target.result;
+            $('aScreenPreview').src = currentScreenBase64;
+            $('aScreenPreview').style.display = 'block';
+        };
+        reader.readAsDataURL(e.target.files[0]);
+    }
+};
+
+$('btnSaveAdv').onclick = function() { 
+    var amt = parseFloat($('aAmt').value); 
+    if(!amt) { toast('Enter amount', 'error'); return; } 
+    currentDocAdvances.push({ 
+        amt: amt, 
+        date: $('aDate').value, 
+        mode: $('aMode').value, 
+        utr: $('aUtr').value,
+        screenshot: currentScreenBase64 || ''
+    }); 
+    calcDocTotals(); 
+    renderAdvList();
+    closeModal('advModal'); 
+    toast('Advance added'); 
+};
+
+function renderAdvList() {
+    var container = $('advListContainer');
+    if (currentDocAdvances.length === 0) { container.innerHTML = ''; return; }
+    var html = '<div style="margin-top:0.5rem;"><strong style="font-size:0.85rem; color:var(--muted);">Advance History:</strong></div>';
+    currentDocAdvances.forEach(function(a, i) {
+        html += '<div class="advance-item">';
+        html += '<div class="advance-details">';
+        html += '<div class="mode">' + a.mode + (a.utr ? ' | UTR: ' + a.utr : '') + '</div>';
+        html += '<div class="meta">📅 ' + a.date + (a.screenshot ? ' | 📷 Attached' : '') + '</div>';
+        if (a.screenshot) {
+            html += '<img src="' + a.screenshot + '" alt="Screenshot">';
+        }
+        html += '</div>';
+        html += '<div style="display:flex; align-items:center; gap:0.5rem;">';
+        html += '<span class="advance-amount">' + fmt(a.amt) + '</span>';
+        html += '<button class="btn btn-danger btn-sm" onclick="removeAdvance(' + i + ')">✕</button>';
+        html += '</div></div>';
+    });
+    container.innerHTML = html;
+}
+
+window.removeAdvance = function(i) {
+    currentDocAdvances.splice(i, 1);
+    calcDocTotals();
+    renderAdvList();
+    toast('Advance removed');
+};
+
+function calcDocTotals() { 
+    var sub = 0, gst = 0; 
+    for(var i=0; i<currentDocItems.length; i++) { sub += currentDocItems[i].sub; gst += currentDocItems[i].gstAmt; }
+    var grandBeforeDiscount = sub + gst;
+    var grand = grandBeforeDiscount - currentDiscount;
+    var adv = 0; 
+    for(var i=0; i<currentDocAdvances.length; i++) { adv += currentDocAdvances[i].amt; }
+    $('calcSub').textContent = fmt(sub); 
+    $('calcGst').textContent = fmt(gst); 
+    $('calcDiscount').textContent = fmt(currentDiscount);
+    $('calcGrand').textContent = fmt(grand); 
+    $('calcAdv').textContent = fmt(adv); 
+    $('calcBal').textContent = fmt(grand - adv); 
+}
+
+$('btnSaveDoc').onclick = function() { 
+    var partyId = $('docParty').value; if(!partyId || currentDocItems.length === 0) { toast('Select party & add items', 'error'); return; } 
+    var sub = 0, gst = 0; for(var i=0; i<currentDocItems.length; i++) { sub += currentDocItems[i].sub; gst += currentDocItems[i].gstAmt; }
+    var grand = sub + gst - currentDiscount; 
+    var adv = 0; for(var i=0; i<currentDocAdvances.length; i++) { adv += currentDocAdvances[i].amt; }
+    
+    if (editingInvoiceId) {
+        for(var i=0; i<DB.invoices.length; i++) {
+            if(DB.invoices[i].id === editingInvoiceId) {
+                DB.invoices[i].items = currentDocItems;
+                DB.invoices[i].advances = currentDocAdvances;
+                DB.invoices[i].discount = currentDiscount;
+                DB.invoices[i].subtotal = sub;
+                DB.invoices[i].gstTotal = gst;
+                DB.invoices[i].grandTotal = grand;
+                DB.invoices[i].totalAdvance = adv;
+                DB.invoices[i].balance = grand - adv;
+                DB.invoices[i].notes = $('docNotes').value; DB.invoices[i].ship = $('docShip').value; DB.invoices[i].opts = getOpts();
+                break;
+            }
+        }
+        safeSet('bp_invoices', DB.invoices);
+        editingInvoiceId = null;
+        $('docParty').disabled = false;
+        $('discountRow').style.display = 'flex';
+        toast('Invoice updated successfully!');
+        navigateTo('sales');
+    } else {
+        var doc = { id: Date.now().toString(), number: $('docRef').value, partyId: partyId, date: $('docDate').value, items: currentDocItems, advances: currentDocAdvances, discount: currentDiscount, subtotal: sub, gstTotal: gst, grandTotal: grand, totalAdvance: adv, balance: grand - adv, notes: $('docNotes').value, ship: $('docShip').value, opts: getOpts(), type: currentDocType }; 
+        
+        if(currentDocType === 'invoice') { DB.invoices.push(doc); safeSet('bp_invoices', DB.invoices); } 
+        else if(currentDocType === 'quotation') { DB.quotations.push(doc); safeSet('bp_quotations', DB.quotations); } 
+        else { DB.purchases.push(doc); safeSet('bp_purchases', DB.purchases); } 
+        toast('Document Saved!'); 
+        var target = currentDocType === 'invoice' ? 'sales' : currentDocType === 'quotation' ? 'quotations' : 'purchase';
+        navigateTo(target);
+    }
+};
+
+$('btnSendWhatsApp').onclick = function() {
+    var partyId = $('docParty').value;
+    if (!partyId) { toast('Please select a party first', 'error'); return; }
+    if (currentDocItems.length === 0) { toast('Add items first', 'error'); return; }
+    
+    var p = getPartyById(partyId);
+    if (!p || !p.phone) { toast('Party phone number not found', 'error'); return; }
+    
+    var sub = 0, gst = 0; 
+    for(var i=0; i<currentDocItems.length; i++) { sub += currentDocItems[i].sub; gst += currentDocItems[i].gstAmt; }
+    var grand = sub + gst - currentDiscount;
+    var adv = 0; 
+    for(var i=0; i<currentDocAdvances.length; i++) { adv += currentDocAdvances[i].amt; }
+    var balance = grand - adv;
+    
+    var companyName = DB.settings.compName || 'Our Company';
+    var docType = currentDocType === 'invoice' ? 'Invoice' : 'Quotation';
+    var refNum = $('docRef').value;
+    
+    var message = '📄 *' + docType + ' from ' + companyName + '*\n\n';
+    message += '📋 Ref: ' + refNum + '\n';
+    message += '📅 Date: ' + $('docDate').value + '\n\n';
+    message += '*Items:*\n';
+    currentDocItems.forEach(function(it, i) {
+        message += (i+1) + '. ' + it.name + ' - Qty: ' + it.qty + ' × ' + fmt(it.price) + ' = ' + fmt(it.total) + '\n';
+    });
+    message += '\nSubtotal: ' + fmt(sub) + '\n';
+    message += 'GST: ' + fmt(gst) + '\n';
+    if (currentDiscount > 0) message += 'Discount: -' + fmt(currentDiscount) + '\n';
+    message += '*Grand Total: ' + fmt(grand) + '*\n';
+    if (currentDocType === 'invoice' && adv > 0) {
+        message += 'Advance Paid: ' + fmt(adv) + '\n';
+        message += '*Balance Due: ' + fmt(balance) + '*\n';
+    }
+    if ($('docNotes').value) message += '\n📝 Notes: ' + $('docNotes').value + '\n';
+    message += '\nThank you! - ' + companyName;
+    
+    window.open('https://wa.me/91' + p.phone.replace(/\D/g,'') + '?text=' + encodeURIComponent(message), '_blank');
+    toast('WhatsApp opened!');
+};
+
+$('btnPreviewDoc').onclick = function() {
+    if(currentDocItems.length === 0) { toast('Add items first', 'error'); return; }
+    var partyId = $('docParty').value;
+    var sub = 0, gst = 0; for(var i=0; i<currentDocItems.length; i++) { sub += currentDocItems[i].sub; gst += currentDocItems[i].gstAmt; }
+    var grand = sub + gst - currentDiscount; 
+    var adv = 0; for(var i=0; i<currentDocAdvances.length; i++) { adv += currentDocAdvances[i].amt; }
+    var doc = { number: $('docRef').value, partyId: partyId, date: $('docDate').value, items: currentDocItems, advances: currentDocAdvances, discount: currentDiscount, subtotal: sub, gstTotal: gst, grandTotal: grand, totalAdvance: adv, balance: grand - adv, notes: $('docNotes').value, ship: $('docShip').value, opts: getOpts() };
+    showPreview(doc, currentDocType);
+};
+
+$('btnPrintDoc').onclick = function() {
+    if(currentDocItems.length === 0) { toast('Add items first', 'error'); return; }
+    var partyId = $('docParty').value;
+    var sub = 0, gst = 0; for(var i=0; i<currentDocItems.length; i++) { sub += currentDocItems[i].sub; gst += currentDocItems[i].gstAmt; }
+    var grand = sub + gst - currentDiscount; 
+    var adv = 0; for(var i=0; i<currentDocAdvances.length; i++) { adv += currentDocAdvances[i].amt; }
+    var doc = { number: $('docRef').value, partyId: partyId, date: $('docDate').value, items: currentDocItems, advances: currentDocAdvances, discount: currentDiscount, subtotal: sub, gstTotal: gst, grandTotal: grand, totalAdvance: adv, balance: grand - adv, notes: $('docNotes').value, ship: $('docShip').value, opts: getOpts() };
+    printDocument(doc, currentDocType);
+};
+
+$('btnNewParty').onclick = function() { 
+    continueToDoc = 0;
+    editingId = null; 
+    $('partyModalTitle').textContent = 'Add Party'; 
+    $('pName').value=''; $('pPhone').value=''; $('pEmail').value=''; $('pAddr').value=''; 
+    $('btnSaveParty').style.display = 'flex';
+    $('btnSavePartyContinue').style.display = 'none';
+    openModal('partyModal'); 
+};
+$('btnSaveParty').onclick = function() { 
+    var name=$('pName').value, phone=$('pPhone').value; if(!name || !phone) { toast('Name/Phone required', 'error'); return; } 
+    if(editingId) { for(var i=0; i<DB.parties.length; i++) { if(DB.parties[i].id === editingId) { DB.parties[i].name=name; DB.parties[i].phone=phone; DB.parties[i].email=$('pEmail').value; DB.parties[i].addr=$('pAddr').value; } } } 
+    else { DB.parties.push({ id: Date.now().toString(), name: name, phone: phone, email: $('pEmail').value, addr: $('pAddr').value }); } 
+    safeSet('bp_parties', DB.parties); closeModal('partyModal'); updateDashboard(); toast('Party Saved!'); 
+};
+$('btnSavePartyContinue').onclick = function() {
+    var name=$('pName').value, phone=$('pPhone').value; if(!name || !phone) { toast('Name/Phone required', 'error'); return; }
+    DB.parties.push({ id: Date.now().toString(), name: name, phone: phone, email: $('pEmail').value, addr: $('pAddr').value });
+    safeSet('bp_parties', DB.parties);
+    closeModal('partyModal');
+    
+    if(continueToDoc === 1) {
+        // Doc form mode
+        var pSel = $('docParty');
+        pSel.innerHTML = '<option value="">-- Select Party --</option>' + DB.parties.map(function(p) { return '<option value="' + p.id + '">' + p.name + '</option>'; }).join('');
+        pSel.value = DB.parties[DB.parties.length - 1].id;
+        continueToDoc = 0;
+        toast('Party added! Continue with document.');
+    } else if(continueToDoc === 3) {
+        // Ledger mode - refresh ledger dropdown and auto-select new party
+        initLedger();
+        $('ledgerPartySelect').value = DB.parties[DB.parties.length - 1].id;
+        $('ledgerContent').style.display = 'block';
+        renderLedger();
+        continueToDoc = 0;
+        toast('Party added! Ledger updated.');
+    } else {
+        updateDashboard();
+        toast('Party Saved!');
+    }
+};
+
+$('btnNewItem').onclick = function() { 
+    continueToDoc = 0;
+    editingItemId = null;
+    $('itemModalTitle').textContent = 'Add Item'; 
+    $('iName').value=''; $('iPrice').value=''; $('iStock').value=''; $('iGst').value=18; $('iDesc').value=''; $('iMoreInfo').value=''; 
+    $('btnSaveItem').style.display = 'flex';
+    $('btnSaveAsTemplate').style.display = 'flex';
+    $('btnSaveAndContinue').style.display = 'none';
+    openModal('itemModal'); 
+};
+
+function openItemEditModal(item) {
+    continueToDoc = 0;
+    editingItemId = item.id;
+    $('itemModalTitle').textContent = 'Edit Item';
+    $('iName').value = item.name;
+    $('iPrice').value = item.price;
+    $('iStock').value = item.stock;
+    $('iGst').value = item.gst;
+    $('iDesc').value = item.desc || '';
+    $('iMoreInfo').value = item.moreInfo || '';
+    $('btnSaveItem').style.display = 'flex';
+    $('btnSaveAsTemplate').style.display = 'none';
+    $('btnSaveAndContinue').style.display = 'flex';
+    openModal('itemModal');
+}
+
+$('btnSaveItem').onclick = function() { 
+    var name=$('iName').value, price=parseFloat($('iPrice').value); if(!name || !price) { toast('Name/Price required', 'error'); return; } 
+    if(editingItemId) {
+        for(var i=0; i<DB.items.length; i++) {
+            if(DB.items[i].id === editingItemId) {
+                DB.items[i].name = name; DB.items[i].price = price; DB.items[i].stock = $('iStock').value; 
+                DB.items[i].gst = $('iGst').value; DB.items[i].desc = $('iDesc').value; DB.items[i].moreInfo = $('iMoreInfo').value;
+            }
+        }
+        editingItemId = null;
+    } else {
+        DB.items.push({ id: Date.now().toString(), name: name, price: price, stock: $('iStock').value, gst: $('iGst').value, desc: $('iDesc').value, moreInfo: $('iMoreInfo').value }); 
+    }
+    safeSet('bp_items', DB.items); closeModal('itemModal'); updateDashboard(); toast('Item Saved!'); 
+};
+
+$('btnSaveAndContinue').onclick = function() {
+    var name=$('iName').value, price=parseFloat($('iPrice').value); if(!name || !price) { toast('Name/Price required', 'error'); return; }
+    if(editingItemId) {
+        for(var i=0; i<DB.items.length; i++) {
+            if(DB.items[i].id === editingItemId) {
+                DB.items[i].name = name; DB.items[i].price = price; DB.items[i].stock = $('iStock').value; 
+                DB.items[i].gst = $('iGst').value; DB.items[i].desc = $('iDesc').value; DB.items[i].moreInfo = $('iMoreInfo').value;
+            }
+        }
+        editingItemId = null;
+    } else {
+        DB.items.push({ id: Date.now().toString(), name: name, price: price, stock: $('iStock').value, gst: $('iGst').value, desc: $('iDesc').value, moreInfo: $('iMoreInfo').value });
+    }
+    safeSet('bp_items', DB.items);
+    closeModal('itemModal');
+    
+    if(continueToDoc === 2) {
+        var sel = $('diSelect');
+        sel.innerHTML = '<option value="">-- Select an Item --</option>';
+        for(var i=0; i<DB.items.length; i++) {
+            sel.innerHTML += '<option value="' + DB.items[i].id + '" data-price="' + DB.items[i].price + '" data-gst="' + DB.items[i].gst + '">' + DB.items[i].name + '</option>';
+        }
+        sel.value = DB.items[DB.items.length - 1].id;
+        $('diPrice').value = DB.items[DB.items.length - 1].price;
+        $('diGst').value = DB.items[DB.items.length - 1].gst;
+        openModal('docItemModal');
+        continueToDoc = 0;
+        toast('Item added! Continue with document.');
+    } else {
+        updateDashboard();
+        toast('Item Saved!');
+    }
+};
+
+$('btnSaveAsTemplate').onclick = function() {
+    var name = $('iName').value.trim();
+    if(!name) { toast('Enter item name first', 'error'); return; }
+    var templateName = prompt('Enter template name:');
+    if(!templateName) return;
+    
+    var tempItem = {
+        itemId: editingItemId || 'temp_' + Date.now(),
+        name: name,
+        qty: 1,
+        price: parseFloat($('iPrice').value) || 0,
+        gst: parseFloat($('iGst').value) || 18,
+        sub: parseFloat($('iPrice').value) || 0,
+        gstAmt: ((parseFloat($('iPrice').value) || 0) * (parseFloat($('iGst').value) || 18)) / 100,
+        total: (parseFloat($('iPrice').value) || 0) * 1.18
+    };
+    
+    DB.templates.push({
+        id: Date.now().toString(),
+        name: templateName,
+        items: [tempItem],
+        total: tempItem.total,
+        date: today()
+    });
+    safeSet('bp_templates', DB.templates);
+    toast('Saved as Template!');
+};
+
+$('btnHowTemplates').onclick = function() {
+    alert('HOW TO USE TEMPLATES:\n\n1. Go to Inventory → Add Item → Fill details → Click "Save as Project"\n2. Give template a name\n3. Now go to Quotations or Sales → Create new → Click "Pick from Projects"\n4. Select your template - all items auto-fill!');
+};
+
+function initLedger() { 
+    var sel = $('ledgerPartySelect'); 
+    sel.innerHTML = '<option value="">-- Select Party --</option>' + DB.parties.map(function(p) { return '<option value="' + p.id + '">' + p.name + '</option>'; }).join(''); 
+    $('ledgerContent').style.display = 'none'; 
+} 
+$('ledgerPartySelect').onchange = function() { 
+    currentLedgerParty = this.value; if(!currentLedgerParty) { $('ledgerContent').style.display = 'none'; return; } 
+    $('ledgerContent').style.display = 'block'; renderLedger(); 
+};
+function renderLedger() { 
+    if(!currentLedgerParty) return; 
+    var totalDebit = 0, totalCredit = 0, txs = [];
+    for(var i=0; i<DB.invoices.length; i++) { 
+        if(DB.invoices[i].partyId === currentLedgerParty) { totalDebit += DB.invoices[i].grandTotal; txs.push({ date: DB.invoices[i].date, type: 'Invoice', ref: DB.invoices[i].number, debit: DB.invoices[i].grandTotal, credit: 0 }); }
+    }
+    for(var i=0; i<DB.payments.length; i++) { 
+        if(DB.payments[i].partyId === currentLedgerParty) { totalCredit += DB.payments[i].amount; txs.push({ date: DB.payments[i].date, type: 'Payment', ref: DB.payments[i].mode + (DB.payments[i].utr?'-'+DB.payments[i].utr:''), debit: 0, credit: DB.payments[i].amount }); }
+    }
+    txs.sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
+    $('ledDebit').textContent = fmt(totalDebit); $('ledCredit').textContent = fmt(totalCredit); $('ledBalance').textContent = fmt(totalDebit - totalCredit); 
+    var balance = 0, tb = $('ledgerTableBody'); 
+    tb.innerHTML = txs.map(function(t) { balance += (t.debit - t.credit); return '<tr><td>' + t.date + '</td><td>' + t.type + '</td><td>' + t.ref + '</td><td>' + (t.debit?fmt(t.debit):'-') + '</td><td>' + (t.credit?fmt(t.credit):'-') + '</td><td><strong>' + fmt(balance) + '</strong></td></tr>'; }).join(''); 
+}
+$('btnAddPayment').onclick = function() { $('lpAmt').value=''; $('lpDate').value=today(); openModal('ledPayModal'); }; 
+$('btnSaveLedPay').onclick = function() { 
+    var amt = parseFloat($('lpAmt').value); if(!amt || !currentLedgerParty) { toast('Enter amount', 'error'); return; } 
+    DB.payments.push({ id: Date.now().toString(), partyId: currentLedgerParty, amount: amt, date: $('lpDate').value, mode: $('lpMode').value }); 
+    safeSet('bp_payments', DB.payments); closeModal('ledPayModal'); renderLedger(); updateDashboard(); toast('Payment Recorded!'); 
+};
+
+function printDocument(doc, type) { 
+    var p = getPartyById(doc.partyId); 
+    var itemsHtml = doc.items.map(function(i) { return '<tr><td style="border:1px solid #ddd; padding:8px;">' + i.name + '</td><td style="border:1px solid #ddd; padding:8px;">' + i.qty + '</td><td style="border:1px solid #ddd; padding:8px;">' + fmt(i.price) + '</td><td style="border:1px solid #ddd; padding:8px;">' + i.gst + '%</td><td style="border:1px solid #ddd; padding:8px;">' + fmt(i.total) + '</td></tr>'; }).join('');
+    
+    var advancesSection = '';
+    if (type === 'invoice' && doc.advances && doc.advances.length > 0) {
+        advancesSection = '<h4 style="margin-top:1.5rem;">Advance Payments History</h4><table style="width:100%;"><thead><tr><th style="border:1px solid #ddd; padding:8px;">Date</th><th style="border:1px solid #ddd; padding:8px;">Mode</th><th style="border:1px solid #ddd; padding:8px;">UTR/Ref</th><th style="border:1px solid #ddd; padding:8px;">Amount</th></tr></thead><tbody>';
+        doc.advances.forEach(function(a) {
+            advancesSection += '<tr><td style="border:1px solid #ddd; padding:8px;">' + a.date + '</td><td style="border:1px solid #ddd; padding:8px;">' + a.mode + '</td><td style="border:1px solid #ddd; padding:8px;">' + (a.utr || '-') + '</td><td style="border:1px solid #ddd; padding:8px;">' + fmt(a.amt) + '</td></tr>';
+        });
+        advancesSection += '</tbody></table>';
+    }
+    
+    var discountHtml = doc.discount > 0 ? '<p style="text-align:right;">Discount: -' + fmt(doc.discount) + '</p>' : '';
+    
+    var printContent = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>' + (type === 'invoice' ? 'Invoice' : 'Quotation') + ' - ' + doc.number + '</title><style>body{margin:0; padding:20px; font-family: Arial, sans-serif;} table{width:100%; border-collapse: collapse; margin-top: 1rem;} th, td{border:1px solid #ddd; padding:8px; text-align: left;} th{background:#f0f0f0;} h1{color: #be185d;} .text-right{text-align: right;} .balance{color: #ef4444; font-weight: bold;} @media print{body{padding:0;}}</style></head><body>';
+    printContent += '<h1>' + (DB.settings.compName || 'My Company') + '</h1>';
+    printContent += '<p>' + (DB.settings.compPhone || '') + ' | ' + (DB.settings.compEmail || '') + '</p>';
+    printContent += '<hr style="margin: 1rem 0;">';
+    printContent += '<h2>' + (type === 'invoice' ? 'TAX INVOICE' : 'QUOTATION') + '</h2>';
+    printContent += '<p><strong>Invoice #:</strong> ' + doc.number + ' | <strong>Date:</strong> ' + doc.date + '</p>';
+    printContent += '<p><strong>Party:</strong> ' + (p?p.name:'Unknown') + ' (' + (p?p.phone:'') + ')</p>';
+    printContent += '<table><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>GST</th><th>Total</th></tr></thead><tbody>' + itemsHtml + '</tbody></table>';
+    printContent += '<div class="text-right" style="margin-top: 1rem;">';
+    printContent += '<p>Subtotal: ' + fmt(doc.subtotal) + '</p>';
+    printContent += '<p>GST: ' + fmt(doc.gstTotal) + '</p>';
+    printContent += discountHtml;
+    printContent += '<h3>Grand Total: ' + fmt(doc.grandTotal) + '</h3>';
+    printContent += '</div>';
+    printContent += advancesSection;
+    if (type === 'invoice') {
+        printContent += '<h3 class="balance" style="margin-top:1rem;">Balance Due: ' + fmt(doc.balance) + '</h3>';
+    }
+    printContent += '<p style="margin-top:2rem;"><strong>Notes:</strong> ' + (doc.notes || 'None') + '</p>';
+    printContent += '<script>setTimeout(function(){ window.print(); }, 500);<\/script>';
+    printContent += '</body></html>';
+    
+    var iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    document.body.appendChild(iframe);
+    
+    var iframeDoc = iframe.contentWindow.document;
+    iframeDoc.open();
+    iframeDoc.write(printContent);
+    iframeDoc.close();
+    
+    setTimeout(function() {
+        try {
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
+        } catch(e) {
+            var w = window.open('', '_blank');
+            if (w) {
+                w.document.write(printContent);
+                w.document.close();
+            } else {
+                toast('Please allow popups to print', 'error');
+            }
+        }
+        setTimeout(function() { document.body.removeChild(iframe); }, 1000);
+    }, 500);
+}
+
+$('btnSaveSettings').onclick = function() { 
+    DB.settings = { compName: $('setCompName').value, compPhone: $('setCompPhone').value, compEmail: $('setCompEmail').value, compGst: $('setCompGst').value }; 
+    safeSet('bp_settings', DB.settings); toast('Settings Saved!'); 
+};
+$('btnBackup').onclick = function() { 
+    var dataStr = JSON.stringify(DB, null, 2); var blob = new Blob([dataStr], {type: 'application/json'}); var url = URL.createObjectURL(blob); var a = document.createElement('a'); 
+    a.href = url; a.download = 'billing_backup_' + today() + '.json'; a.click(); 
+    setTimeout(function() { window.location.href = 'mailto:' + (DB.settings.compEmail || '') + '?subject=Billing Backup&body=Attached is my backup.'; }, 1000); 
+    toast('Backup downloaded! Attach to email.', 'info'); 
+}; 
+$('btnRestore').onclick = function() { $('restoreFile').click(); }; 
+$('restoreFile').onchange = function(e) { 
+    if(e.target.files && e.target.files[0]) { 
+        var r = new FileReader(); 
+        r.onload = function(ev) { 
+            try { 
+                var data = JSON.parse(ev.target.result); 
+                if(confirm('Replace current data?')) { 
+                    DB = { parties: data.parties||[], items: data.items||[], invoices: data.invoices||[], quotations: data.quotations||[], templates: data.templates||[], purchases: data.purchases||[], payments: data.payments||[], settings: data.settings||{compName:'',compPhone:'',compEmail:'',compGst:''} };
+                    safeSet('bp_parties', DB.parties); safeSet('bp_items', DB.items); safeSet('bp_invoices', DB.invoices); safeSet('bp_quotations', DB.quotations); safeSet('bp_templates', DB.templates); safeSet('bp_purchases', DB.purchases); safeSet('bp_payments', DB.payments); safeSet('bp_settings', DB.settings);
+                    initApp(); toast('Data Restored!'); 
+                } 
+            } catch(err) { toast('Invalid file', 'error'); } 
+        }; 
+        r.readAsText(e.target.files[0]); 
+    } 
+};
+
+function initApp() { 
+    $('setCompName').value = DB.settings.compName || ''; $('setCompPhone').value = DB.settings.compPhone || ''; 
+    $('setCompEmail').value = DB.settings.compEmail || ''; $('setCompGst').value = DB.settings.compGst || ''; 
+    updateDashboard(); 
+}
+</script>
+<script>
+(function(){
+var e=function(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');};
+/* ---------- AUTH ---------- */
+if(!DB.settings||Array.isArray(DB.settings))DB.settings={};
+var $$=function(i){return document.getElementById(i);};
+function refreshAll(){try{updateDashboard();renderTemplates();if(currentLedgerParty)renderLedger();}catch(x){}try{v3Refresh();}catch(x){}}
+var _ss=safeSet;window.safeSet=function(k,v){_ss(k,v);setTimeout(refreshAll,0);};
+var Qs=['First school name','Favourite teacher name','First pet name','Birth city','Childhood friend name'];
+function cy(s,seed){var h1=0xdeadbeef^seed,h2=0x41c6ce57^seed;for(var i=0,ch;i<s.length;i++){ch=s.charCodeAt(i);h1=Math.imul(h1^ch,2654435761);h2=Math.imul(h2^ch,1597334677);}h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);return(4294967296*(2097151&h2)+(h1>>>0)).toString(36);}
+var H=function(s){return cy(s,1)+cy(s,7);};
+var users=function(){try{return JSON.parse(localStorage.getItem('bp_users2'))||{};}catch(x){return {};}};
+var saveUsers=function(u){localStorage.setItem('bp_users2',JSON.stringify(u));};
+var norm=function(s){return String(s||'').trim().toLowerCase();};
+var okMail=function(s){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);};
+var qopts=Qs.map(function(q,i){return '<option value="'+i+'">'+q+'</option>';}).join('');
+var pwf=function(id,ph,ac){return '<div class="pw"><input id="'+id+'" type="password" class="form-control" placeholder="'+ph+'" autocomplete="'+ac+'" name="'+id+'"><span class="eye" data-eye="'+id+'">&#128065;</span></div>';};
+var ov=document.createElement('div');ov.id='authOverlay';
+ov.innerHTML='<div class="auth-box"><div class="auth-logo">&#128202;</div><h2>Digi Billing Pro</h2>'+
+'<form id="aLogin" autocomplete="on"><input id="lgId" name="username" type="email" class="form-control" placeholder="Email" autocomplete="username">'+pwf('lgPw','Password','current-password')+'<label class="chk"><input type="checkbox" id="lgSave"> Save password</label><button type="submit" class="btn btn-primary btn-block">Login</button><p class="auth-link"><a data-v="aForgot">Forgot password</a><a data-v="aSign">Create ID</a></p></form>'+
+'<form id="aSign" style="display:none" autocomplete="on"><input id="sgId" name="username" type="email" class="form-control" placeholder="Email" autocomplete="username">'+pwf('sgPw','Create password','new-password')+'<select id="sgQ" class="form-control">'+qopts+'</select><input id="sgA" class="form-control" placeholder="Security answer" autocomplete="off"><button type="submit" class="btn btn-primary btn-block">Create ID</button><p class="auth-link"><a data-v="aLogin">Back to login</a></p></form>'+
+'<form id="aForgot" style="display:none" autocomplete="off"><input id="fgId" type="email" class="form-control" placeholder="Email"><button type="button" class="btn btn-outline btn-block" id="fgNext">Next</button><div id="fgBox" style="display:none"><p id="fgQ" class="auth-q"></p><input id="fgA" class="form-control" placeholder="Security answer" autocomplete="off">'+pwf('fgPw','New password','new-password')+'<button type="submit" class="btn btn-primary btn-block">Reset Password</button></div><p class="auth-link"><a data-v="aLogin">Back to login</a></p></form>'+
+'<p id="authMsg" class="auth-msg"></p></div>';
+document.body.appendChild(ov);
+function msg(t){$$('authMsg').textContent=t||'';}
+function view(v){['aLogin','aSign','aForgot'].forEach(function(x){$$(x).style.display=x===v?'block':'none';});$$('fgBox').style.display='none';msg('');}
+ov.addEventListener('click',function(ev){var t=ev.target,v=t.getAttribute&&t.getAttribute('data-v'),ey=t.getAttribute&&t.getAttribute('data-eye');if(v)view(v);if(ey){var f=$$(ey);f.type=f.type==='password'?'text':'password';}});
+function enter(id){localStorage.setItem('bp_session',id);ov.style.display='none';initApp();window.navStack=[];navigateTo('dashboard');refreshAll();}
+$$('aLogin').addEventListener('submit',function(ev){ev.preventDefault();var id=norm($$('lgId').value),pw=$$('lgPw').value,u=users()[id];
+ if(!id||!pw)return msg('Enter email and password');if(!u)return msg('Account not found');if(u.p!==H('pw:'+pw))return msg('Wrong password');
+ if($$('lgSave').checked)localStorage.setItem('bp_saved',JSON.stringify({id:id,pw:pw}));else localStorage.removeItem('bp_saved');enter(id);});
+$$('aSign').addEventListener('submit',function(ev){ev.preventDefault();var id=norm($$('sgId').value),pw=$$('sgPw').value,an=norm($$('sgA').value),us=users();
+ if(!okMail(id))return msg('Enter a valid email');if(us[id])return msg('Account already exists');if(pw.length<4)return msg('Password must be at least 4 characters');if(!an)return msg('Enter security answer');
+ us[id]={p:H('pw:'+pw),q:parseInt($$('sgQ').value,10),a:H('a:'+an)};saveUsers(us);enter(id);toast('Account created');});
+$$('fgNext').onclick=function(){var id=norm($$('fgId').value),u=users()[id];if(!u)return msg('Account not found');$$('fgQ').textContent=Qs[u.q];$$('fgBox').style.display='block';msg('');};
+$$('aForgot').addEventListener('submit',function(ev){ev.preventDefault();var id=norm($$('fgId').value),us=users(),u=us[id],pw=$$('fgPw').value;if(!u||$$('fgBox').style.display==='none')return msg('Enter email and press Next');
+ if(u.a!==H('a:'+norm($$('fgA').value)))return msg('Wrong answer');if(pw.length<4)return msg('Password must be at least 4 characters');
+ u.p=H('pw:'+pw);saveUsers(us);try{var sv=JSON.parse(localStorage.getItem('bp_saved'));if(sv&&sv.id===id)localStorage.setItem('bp_saved',JSON.stringify({id:id,pw:pw}));}catch(x){}
+ view('aLogin');$$('lgId').value=id;$$('lgPw').value='';toast('Password updated');});
+try{var sv=JSON.parse(localStorage.getItem('bp_saved'));if(sv){$$('lgId').value=sv.id;$$('lgPw').value=sv.pw;$$('lgSave').checked=true;}}catch(x){}
+var sess=localStorage.getItem('bp_session');
+if(sess&&users()[sess])ov.style.display='none';else{ov.style.display='flex';view(Object.keys(users()).length?'aLogin':'aSign');}
+$$('btnSignOut').onclick=function(){localStorage.removeItem('bp_session');location.reload();};
+$$('cpGo').onclick=function(){var id=localStorage.getItem('bp_session'),us=users(),u=us[id],n=$$('cpNew').value;if(!u)return;
+ if(u.p!==H('pw:'+$$('cpOld').value))return toast('Current password is wrong','error');if(n.length<4)return toast('Password must be at least 4 characters','error');if(n!==$$('cpNew2').value)return toast('Passwords do not match','error');
+ u.p=H('pw:'+n);saveUsers(us);try{var sv=JSON.parse(localStorage.getItem('bp_saved'));if(sv&&sv.id===id)localStorage.setItem('bp_saved',JSON.stringify({id:id,pw:n}));}catch(x){}
+ $$('cpOld').value=$$('cpNew').value=$$('cpNew2').value='';toast('Password changed');};
+/* ---------- NAV / BACK FLOW ---------- */
+var _nav=navigateTo;
+function cur(){var a=document.querySelector('.section.active');return a?a.id:'dashboard';}
+function upd(){$$('backBtn').textContent='← Back';var c=cur();document.querySelectorAll('#botBar [data-go]').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-go')===c);});}
+window.navStack=[];
+window.navigateTo=function(t){var c=cur();if(c!==t){if(c!=='docForm')navStack.push(c);history.pushState({},'');}_nav(t);labelSave(t);refreshAll();window.scrollTo(0,0);upd();};
+document.addEventListener('click',function(ev){var b=ev.target.closest&&ev.target.closest('.nav-btn');if(b){var t=b.getAttribute('data-target');if(t!==cur())navStack.push(cur());history.pushState({},'');setTimeout(function(){upd();refreshAll();},0);}},true);
+function goBack(){var p=navStack.pop();_nav(p||'dashboard');refreshAll();upd();}
+var nbk=$$('backBtn').cloneNode(true);$$('backBtn').parentNode.replaceChild(nbk,$$('backBtn'));
+$$('backBtn').onclick=function(){$$('sidebar').classList.remove('open');goBack();};
+window.addEventListener('popstate',function(){if(cur()!=='dashboard'||navStack.length)goBack();});
+$$('btnCancelDoc').onclick=function(){editingInvoiceId=null;$$('docParty').disabled=false;$$('discountRow').style.display='flex';goBack();};
+upd();
+/* ---------- CALCULATOR ---------- */
+var ex='',lastRes='';
+function show(){$$('calcExpr').textContent=ex||'0';}
+$$('calcPad').addEventListener('click',function(ev){var k=ev.target.getAttribute('data-k');if(k===null)return;
+if(k==='C'){ex='';$$('calcRes').textContent='';}else if(k==='⌫'){ex=ex.slice(0,-1);}
+else if(k==='='){try{var s=ex.replace(/×/g,'*').replace(/÷/g,'/').replace(/(\d+\.?\d*)%/g,'($1/100)');if(!/^[0-9+\-*/.() ]+$/.test(s))throw 0;var r=Function('"use strict";return ('+s+')')();if(!isFinite(r))throw 0;r=Math.round(r*1e8)/1e8;$$('calcRes').textContent=ex+' =';ex=String(r);}catch(x){toast('Invalid calculation','error');}}
+else{ex+=k;}show();});
+$$('calcUse').onclick=function(){navigator.clipboard&&navigator.clipboard.writeText(ex);toast('Copied: '+ex);};
+/* ---------- COMPANY SETTINGS ---------- */
+var F=[['compName','setCompName'],['compPhone','setCompPhone'],['compEmail','setCompEmail'],['compGst','setCompGst'],['compAddr','setCompAddr'],['compState','setCompState'],['compPan','setCompPan'],['compWeb','setCompWeb'],['bankHolder','setBankHolder'],['bankName','setBankName'],['bankAcc','setBankAcc'],['bankIfsc','setBankIfsc'],['bankBranch','setBankBranch'],['upi','setUpi'],['terms','setTerms'],['signLabel','setSign']];
+var _init=initApp;
+window.initApp=function(){_init();F.forEach(function(f){$$(f[1]).value=DB.settings[f[0]]||'';});$$('logoPrev').innerHTML=DB.settings.logo?'<img src="'+DB.settings.logo+'" style="max-height:60px">':'';var s=localStorage.getItem('bp_session');$$('whoami').textContent=s?'👤 '+s:'';};
+$$('btnSaveSettings').onclick=function(){F.forEach(function(f){DB.settings[f[0]]=$$(f[1]).value;});safeSet('bp_settings',DB.settings);initApp();toast('Company details saved');};
+$$('setLogo').onchange=function(ev){var fl=ev.target.files&&ev.target.files[0];if(!fl)return;var r=new FileReader();r.onload=function(x){var im=new Image();im.onload=function(){var m=300,sc=Math.min(1,m/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*sc;c.height=im.height*sc;c.getContext('2d').drawImage(im,0,0,c.width,c.height);DB.settings.logo=c.toDataURL('image/png');safeSet('bp_settings',DB.settings);$$('logoPrev').innerHTML='<img src="'+DB.settings.logo+'" style="max-height:60px">';toast('Logo saved');};im.src=x.target.result;};r.readAsDataURL(fl);};
+$$('btnRmLogo').onclick=function(){delete DB.settings.logo;safeSet('bp_settings',DB.settings);$$('logoPrev').innerHTML='';};
+/* ---------- BILL OPTIONS (tick show/hide) ---------- */
+var OK=[['ship','optShip'],['bank','optBank'],['words','optWords'],['hist','optHist']];
+window.defOpts=function(){try{return JSON.parse(localStorage.getItem('bp_opts'))||{ship:false,bank:true,words:true,hist:true};}catch(x){return {ship:false,bank:true,words:true,hist:true};}};
+window.getOpts=function(){var o={};OK.forEach(function(k){o[k[0]]=$$(k[1]).checked;});return o;};
+window.setOpts=function(d){var o=d.opts||defOpts();OK.forEach(function(k){$$(k[1]).checked=!!o[k[0]];});$$('docShip').value=d.ship||SHIPTPL;$$('shipWrap').style.display=o.ship?'block':'none';};
+OK.forEach(function(k){$$(k[1]).onchange=function(){localStorage.setItem('bp_opts',JSON.stringify(getOpts()));$$('shipWrap').style.display=$$('optShip').checked?'block':'none';};});
+$$('btnShipSame').onclick=function(){var p=getPartyById($$('docParty').value);$$('docShip').value=p&&p.addr?p.addr:'';};
+var _sdf=startDocForm;window.startDocForm=function(t){_sdf(t);setOpts({});};
+/* ---------- BILL LAYOUT ---------- */
+var ones=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'],tens=['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+function two(n){return n<20?ones[n]:tens[Math.floor(n/10)]+(n%10?' '+ones[n%10]:'');}
+function three(n){return(n>99?ones[Math.floor(n/100)]+' Hundred'+(n%100?' ':''):'')+(n%100?two(n%100):'');}
+window.amountWords=function(n){n=Math.round((n||0)*100)/100;var r=Math.floor(n),p=Math.round((n-r)*100);if(!r&&!p)return 'Zero Rupees Only';var a=[],cr=Math.floor(r/1e7);r%=1e7;var lk=Math.floor(r/1e5);r%=1e5;var th=Math.floor(r/1e3);r%=1e3;if(cr)a.push(three(cr)+' Crore');if(lk)a.push(two(lk)+' Lakh');if(th)a.push(two(th)+' Thousand');if(r)a.push(three(r));var s=a.length?a.join(' ')+' Rupees':'';if(p)s+=(s?' and ':'')+two(p)+' Paise';return s+' Only';};
+var CSS='.bill{font-family:Arial,sans-serif;color:#222;font-size:13px;padding:6px}.bill table{width:100%;border-collapse:collapse}.bill .hd{border-bottom:3px solid #be185d;padding-bottom:10px;margin-bottom:12px}.bill h1{margin:0 0 4px;font-size:22px;color:#be185d}.bill .ttl{font-size:20px;font-weight:700;color:#be185d;text-align:right}.bill .sm{font-size:12px;color:#444;line-height:1.5}.bill .box{border:1px solid #ddd;padding:8px;border-radius:4px;vertical-align:top}.bill .box b{display:block;color:#be185d;font-size:11px;text-transform:uppercase;margin-bottom:3px}.bill .it th{background:#be185d;color:#fff;padding:7px;font-size:12px;text-align:left}.bill .it td{border:1px solid #ddd;padding:7px}.bill .r{text-align:right}.bill .tot td{padding:4px 7px}.bill .gt td{font-weight:700;font-size:15px;background:#fce7f3;border-top:2px solid #be185d}.bill .words{margin:10px 0;padding:8px;background:#fdf2f8;border-left:4px solid #be185d}.bill h4{margin:14px 0 5px;color:#be185d}.bill .ph th{background:#fce7f3;padding:6px;font-size:12px;text-align:left;border:1px solid #ddd}.bill .ph td{border:1px solid #ddd;padding:6px}.bill .det{font-size:11px;color:#555;margin-top:2px;line-height:1.4}.bill .ft{margin-top:26px;text-align:center;font-size:10px;color:#888}@media print{.bill .ft{position:fixed;bottom:0;left:0;right:0;margin:0}.bill{padding-bottom:30px}}@page{margin:12mm 12mm 16mm}.bill .ttl2{font-weight:700;color:#9d174d;font-size:12px;margin-bottom:2px}';
+window.billHtml=function(doc,type){var S=DB.settings,p=getPartyById(doc.partyId)||{},o=doc.opts||defOpts(),T=type==='invoice'?'TAX INVOICE':type==='quotation'?'QUOTATION':'PURCHASE ORDER';
+var rows=doc.items.map(function(i,n){return '<tr><td>'+(n+1)+'</td><td>'+itTitle(i)+'<b>'+e(i.name)+'</b>'+itDetails(i)+'</td><td class="r">'+i.qty+'</td><td class="r">'+fmt(i.price)+'</td><td class="r">'+i.gst+'%</td><td class="r">'+fmt(i.total)+'</td></tr>';}).join('');
+var h='<div class="bill"><table class="hd"><tr><td style="width:62%;vertical-align:top">'+(S.logo?'<img src="'+S.logo+'" style="max-height:62px;float:left;margin-right:10px">':'')+'<h1>'+e(S.compName||'My Company')+'</h1><div class="sm">'+e(S.compAddr||'')+(S.compState?'<br>'+e(S.compState):'')+'<br>'+(S.compPhone?'Ph: '+e(S.compPhone):'')+(S.compEmail?' | '+e(S.compEmail):'')+(S.compWeb?'<br>'+e(S.compWeb):'')+(S.compGst?'<br><b>GSTIN:</b> '+e(S.compGst):'')+(S.compPan?' &nbsp; <b>PAN:</b> '+e(S.compPan):'')+'</div></td><td style="vertical-align:top"><div class="ttl">'+T+'</div><div class="sm r" style="text-align:right;margin-top:6px"><b>No:</b> '+e(doc.number)+'<br><b>Date:</b> '+e(doc.date)+(doc.quotationNo?'<br><b>Ref:</b> '+e(doc.quotationNo):'')+'</div></td></tr></table>';
+h+='<table style="margin-bottom:12px"><tr><td class="box" style="width:50%"><b>Bill To</b><strong>'+e(p.name||'-')+'</strong><div class="sm">'+e(p.addr||'')+(p.phone?'<br>Ph: '+e(p.phone):'')+(p.email?'<br>'+e(p.email):'')+'</div></td>';
+var sl=shipLines(doc.ship);h+=(o.ship&&sl?'<td class="box"><b>Ship To</b><div class="sm">'+e(sl)+'</div></td>':'<td></td>')+'</tr></table>';
+h+='<table class="it"><thead><tr><th>#</th><th>Item</th><th class="r">Qty</th><th class="r">Rate</th><th class="r">GST</th><th class="r">Amount</th></tr></thead><tbody>'+rows+'</tbody></table>';
+h+='<table style="margin-top:8px"><tr><td style="width:55%"></td><td><table class="tot"><tr><td>Subtotal</td><td class="r">'+fmt(doc.subtotal)+'</td></tr><tr><td>GST</td><td class="r">'+fmt(doc.gstTotal)+'</td></tr>'+(doc.discount>0?'<tr><td>Discount</td><td class="r">-'+fmt(doc.discount)+'</td></tr>':'')+'<tr class="gt"><td>Grand Total</td><td class="r">'+fmt(doc.grandTotal)+'</td></tr>'+(type==='invoice'?'<tr><td>Paid / Advance</td><td class="r">'+fmt(doc.totalAdvance||0)+'</td></tr><tr><td><b>Balance Due</b></td><td class="r"><b>'+fmt(doc.balance)+'</b></td></tr>':'')+'</table></td></tr></table>';
+if(o.words)h+='<div class="words"><b>Amount in words:</b> '+amountWords(doc.grandTotal)+'</div>';
+if(o.hist&&type==='invoice'&&doc.advances&&doc.advances.length){h+='<h4>Payment History</h4><table class="ph"><thead><tr><th>Date</th><th>Mode</th><th>Ref / UTR</th><th class="r">Amount</th></tr></thead><tbody>'+doc.advances.map(function(a){return '<tr><td>'+e(a.date)+'</td><td>'+e(a.mode)+'</td><td>'+e(a.utr||'-')+'</td><td class="r">'+fmt(a.amt)+'</td></tr>';}).join('')+'</tbody></table>';}
+var bank=o.bank&&(S.bankName||S.bankAcc||S.upi);
+if(bank||S.terms||doc.notes){h+='<table style="margin-top:12px"><tr>';if(bank)h+='<td class="box" style="width:50%"><b>Bank Details</b><div class="sm">'+(S.bankHolder?'A/c Name: '+e(S.bankHolder)+'<br>':'')+(S.bankName?'Bank: '+e(S.bankName)+'<br>':'')+(S.bankAcc?'A/c No: '+e(S.bankAcc)+'<br>':'')+(S.bankIfsc?'IFSC: '+e(S.bankIfsc)+'<br>':'')+(S.bankBranch?'Branch: '+e(S.bankBranch)+'<br>':'')+(S.upi?'UPI: '+e(S.upi):'')+'</div></td>';
+if(S.terms||doc.notes)h+='<td class="box"><b>Terms &amp; Notes</b><div class="sm">'+(doc.notes?e(doc.notes)+'<br>':'')+e(S.terms||'')+'</div></td>';h+='</tr></table>';}
+h+='<table style="margin-top:30px"><tr><td class="sm" style="width:55%">Customer Signature</td><td class="sm r" style="text-align:right">For <b>'+e(S.compName||'')+'</b><br>'+(S.sign?'<img src=\"'+S.sign+'\" style=\"max-height:50px;max-width:160px\"><br>':'<br><br><br>')+e(S.signLabel||'Authorised Signatory')+'</td></tr></table><div class="ft">Powered by : www.digidashland.in</div></div>';return h;};
+window.showPreview=function(doc,type){$$('previewContent').innerHTML='<style>'+CSS+'</style>'+billHtml(doc,type);$$('btnPrintFromPreview').onclick=function(){printDocument(doc,type);};openModal('previewModal');};
+window.printDocument=function(doc,type){var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+e(doc.number)+'</title><style>body{margin:0;padding:10px}'+CSS+'</style></head><body>'+billHtml(doc,type)+'</body></html>';var f=document.createElement('iframe');f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0';document.body.appendChild(f);var d=f.contentWindow.document;d.open();d.write(html);d.close();setTimeout(function(){try{f.contentWindow.focus();f.contentWindow.print();}catch(x){var w=window.open('','_blank');if(w){w.document.write(html);w.document.close();}else toast('Allow popups to print','error');}setTimeout(function(){document.body.removeChild(f);},1500);},500);};
+if(localStorage.getItem('bp_session')&&users()[localStorage.getItem('bp_session')])initApp();
+
+/* ---------- ITEM ENTRY (same fields as inventory) ---------- */
+function clearDi(){['diName','diPrice','diStock','diDesc','diMore'].forEach(function(i){$$(i).value='';});$$('diQty').value=1;$$('diGst').value=18;$$('diSave').checked=true;}
+$$('btnAddItemToDoc').onclick=function(){var sel=$$('diSelect');sel.innerHTML='<option value="">-- New Item --</option>'+DB.items.map(function(it){return '<option value="'+it.id+'">'+e(it.name)+'</option>';}).join('');clearDi();openModal('docItemModal');};
+$$('diSelect').onchange=function(){var it=getItemById(this.value);if(it){$$('diName').value=it.name;$$('diPrice').value=it.price;$$('diStock').value=it.stock||'';$$('diGst').value=it.gst;$$('diDesc').value=it.desc||'';$$('diMore').value=it.moreInfo||'';$$('diSave').checked=false;}else clearDi();};
+$$('btnAddDi').onclick=function(){var name=$$('diName').value.trim(),qty=parseFloat($$('diQty').value),price=parseFloat($$('diPrice').value),gst=parseFloat($$('diGst').value)||0;
+ if(!name||!qty||!price){toast('Enter item name, quantity and price','error');return;}
+ var item=$$('diSelect').value?getItemById($$('diSelect').value):null;
+ if(!item&&$$('diSave').checked){item={id:Date.now().toString(),name:name,price:price,stock:$$('diStock').value,gst:$$('diGst').value||'0',desc:$$('diDesc').value,moreInfo:$$('diMore').value};DB.items.push(item);safeSet('bp_items',DB.items);}
+ var sub=qty*price,ga=sub*gst/100;
+ currentDocItems.push({itemId:item?item.id:'',name:name,desc:$$('diDesc').value,moreInfo:$$('diMore').value,qty:qty,price:price,gst:gst,sub:sub,gstAmt:ga,total:sub+ga});
+ renderDocItems();closeModal('docItemModal');};
+function itDetails(i){var inv=i.itemId?getItemById(i.itemId):null,d=i.desc!=null?i.desc:(inv?inv.desc:''),m=i.moreInfo!=null?i.moreInfo:(inv?inv.moreInfo:''),h='';
+ var L=function(t){return String(t||'').split('\n').map(function(x){return x.trim();}).filter(Boolean);};
+ var dl=L(d),ml=L(m);if(dl.length)h+='<div class="det">'+dl.map(function(x,n){return (n+1)+'. '+e(x);}).join('<br>')+'</div>';if(ml.length)h+='<div class="det"><i>'+ml.map(e).join('<br>')+'</i></div>';return h;}
+window.renderDocItems=function(){var tb=$$('docItemsBody');
+ if(!currentDocItems.length)tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:1rem">No items added</td></tr>';
+ else tb.innerHTML=currentDocItems.map(function(it,i){return '<tr><td><b>'+e(it.name)+'</b>'+itDetails(it)+'</td><td>'+it.qty+'</td><td>'+fmt(it.price)+'</td><td>'+it.gst+'%</td><td>'+fmt(it.total)+'</td><td><button class="btn btn-danger btn-sm btn-rm-di" data-i="'+i+'">X</button></td></tr>';}).join('');
+ calcDocTotals();};
+
+/* ================= V3 ================= */
+function ensureDB(){['projects','visits','folders','notes','appts'].forEach(function(k){if(!Array.isArray(DB[k]))DB[k]=safeGet('bp_'+k);});}
+ensureDB();
+var uidc=0;function uid(){return Date.now().toString()+(++uidc);}
+var SHIPTPL='Name: \nAddress: \nMobile: \nRemarks: ';
+var pendSel=null,afterQuoId=null,delCtx=null,projCtx=null,curFolder=null,editNote=null;
+/* migrate old templates -> projects */
+if(!localStorage.getItem('bp_proj_migrated')){(DB.templates||[]).forEach(function(t){DB.projects.push({id:t.id,name:t.name,items:(t.items||[]).map(function(i){var inv=i.itemId?getItemById(i.itemId):null;return {itemId:inv?inv.id:'',title:'',name:i.name,desc:inv?inv.desc:'',moreInfo:inv?inv.moreInfo:'',qty:i.qty||1,price:i.price,gst:i.gst,sub:i.sub,gstAmt:i.gstAmt,total:i.total};}),partyId:'',total:t.total,date:t.date});});safeSet('bp_projects',DB.projects);localStorage.setItem('bp_proj_migrated','1');}
+var waNum=function(p){var d=String(p||'').replace(/\D/g,'');return d.length===10?'91'+d:d;};
+var fmtT=function(t){if(!t)return '';var a=t.split(':'),h=+a[0],m=a[1];return ((h%12)||12)+':'+m+' '+(h>=12?'PM':'AM');};
+function labelSave(t){if(t==='docForm'){$$('btnSaveDoc').textContent=editingInvoiceId?'💾 Update Invoice':currentDocType==='quotation'?'💾 Save Quotation':currentDocType==='purchase'?'💾 Save Purchase Order':'💾 Save Document';}}
+function itTitle(i){return i.title&&String(i.title).trim()?'<div class="ttl2">'+e(i.title)+'</div>':'';}
+function shipLines(t){return String(t||'').split('\n').map(function(x){return x.trim();}).filter(function(x){var k=x.indexOf(':');return k<0?!!x:!!x.slice(k+1).trim();}).join('\n');}
+/* ---------- financial-year numbering ---------- */
+function fyLabel(ds){var d=ds?new Date(ds+'T00:00:00'):new Date();if(isNaN(d))d=new Date();var y=d.getFullYear(),s=d.getMonth()>=3?y:y-1;return s+'-'+String(s+1).slice(2);}
+function seqGet(){try{return JSON.parse(localStorage.getItem('bp_seq'))||{};}catch(x){return {};}}
+function allNums(){return DB.invoices.concat(DB.quotations,DB.purchases).map(function(d){return String(d.number);});}
+function scanMax(p,fy){var pre=p+'/'+fy+'/',mx=0;allNums().forEach(function(n){if(n.indexOf(pre)===0){var v=parseInt(n.slice(pre.length),10);if(v>mx)mx=v;}});return mx;}
+function peekNum(p,ds){var fy=fyLabel(ds),sq=seqGet(),n=Math.max(sq[p+'/'+fy]||0,scanMax(p,fy))+1;return p+'/'+fy+'/'+('0000'+n).slice(-4);}
+function useNum(num){var m=String(num).match(/^([A-Z]+)\/(\d{4}-\d{2})\/(\d+)$/);if(!m)return;var sq=seqGet(),k=m[1]+'/'+m[2];sq[k]=Math.max(sq[k]||0,parseInt(m[3],10));localStorage.setItem('bp_seq',JSON.stringify(sq));}
+var pfx=function(t){return t==='quotation'?'QUO':t==='purchase'?'PO':'INV';};
+var _sdf3=window.startDocForm;
+window.startDocForm=function(t){if(t==='invoice'){openModal('invWarnModal');return;}_sdf3(t);$$('docRef').value=peekNum(pfx(t),$$('docDate').value);setOpts({});labelSave('docForm');};
+$$('btnNewInv').onclick=function(){startDocForm('invoice');};
+$$('docDate').onchange=function(){if(!editingInvoiceId&&currentDocType!=='invoice')$$('docRef').value=peekNum(pfx(currentDocType),this.value);};
+var _sd3=$$('btnSaveDoc').onclick;
+$$('btnSaveDoc').onclick=function(){
+ var pid=$$('docParty').value;if(!pid||!currentDocItems.length){toast('Select party and add items','error');return;}
+ var isNew=!editingInvoiceId,t=currentDocType,before=DB.quotations.length;
+ if(isNew){var cur0=$$('docRef').value,m=cur0.match(/^[A-Z]+\/(\d{4}-\d{2})\//),dup=allNums().indexOf(cur0)>=0;if(!m||m[1]!==fyLabel($$('docDate').value)||dup)$$('docRef').value=peekNum(pfx(t),$$('docDate').value);useNum($$('docRef').value);}
+ _sd3();
+ if(isNew&&t==='quotation'&&DB.quotations.length>before){var q=DB.quotations[DB.quotations.length-1];afterQuoId=q.id;$$('afterQuoNum').textContent=q.number+' saved. Stock is not reduced until it is converted into an invoice.';openModal('afterQuoModal');}
+};
+$$('btnAfterConvert').onclick=function(){closeModal('afterQuoModal');convertQuotation(afterQuoId);};
+/* ---------- invoice only from quotation ---------- */
+function pendingQuos(){return DB.quotations.filter(function(q){return q.status!=='Converted';});}
+function openPickQuo(){var tb=$$('pickQuoBody'),L=pendingQuos();
+ tb.innerHTML=L.length?L.map(function(q){var p=getPartyById(q.partyId);return '<tr><td>'+e(q.number)+'</td><td>'+e(p?p.name:'-')+'</td><td>'+fmt(q.grandTotal)+'</td><td><button class="btn btn-primary btn-sm btn-use-quo" data-id="'+q.id+'">Convert</button></td></tr>';}).join(''):'<tr><td colspan="4" style="text-align:center;padding:1rem">No pending quotations</td></tr>';
+ openModal('pickQuoModal');}
+$$('btnFromQuo').onclick=openPickQuo;
+$$('btnWarnPick').onclick=function(){closeModal('invWarnModal');openPickQuo();};
+$$('btnWarnNew').onclick=function(){closeModal('invWarnModal');startDocForm('quotation');};
+function convertQuotation(qid){
+ var q=DB.quotations.filter(function(x){return x.id===qid;})[0];if(!q)return;
+ if(q.status==='Converted'){toast('Already converted','error');return;}
+ var low=[];q.items.forEach(function(it){var p=it.itemId?getItemById(it.itemId):null;if(p&&p.stock!==''&&p.stock!=null&&!isNaN(parseFloat(p.stock))&&parseFloat(p.stock)<it.qty)low.push(p.name+' (stock '+p.stock+')');});
+ if(low.length&&!confirm('Low stock: '+low.join(', ')+'. Continue?'))return;
+ var num=peekNum('INV',today());useNum(num);
+ var inv={id:uid(),number:num,date:today(),type:'invoice',partyId:q.partyId,items:JSON.parse(JSON.stringify(q.items)),advances:[],discount:q.discount||0,subtotal:q.subtotal||0,gstTotal:q.gstTotal||0,grandTotal:q.grandTotal,totalAdvance:0,balance:q.grandTotal,notes:q.notes||'',ship:q.ship||'',opts:q.opts,quotationId:q.id,quotationNo:q.number,stockCut:[]};
+ q.items.forEach(function(it){var p=it.itemId?getItemById(it.itemId):null;if(p&&p.stock!==''&&p.stock!=null&&!isNaN(parseFloat(p.stock))){var cut=Math.min(parseFloat(p.stock),it.qty);p.stock=String(parseFloat(p.stock)-cut);inv.stockCut.push({itemId:p.id,qty:cut});}});
+ DB.invoices.push(inv);q.status='Converted';q.invoiceId=inv.id;
+ safeSet('bp_items',DB.items);safeSet('bp_invoices',DB.invoices);safeSet('bp_quotations',DB.quotations);
+ toast('Invoice '+num+' created');navigateTo('sales');}
+/* ---------- delete with WhatsApp remarks ---------- */
+function askDelete(kind,id){var o=null,info='';
+ if(kind==='item'){o=getItemById(id);if(!o)return;info='Item: '+o.name;}
+ else{var arr=kind==='invoice'?DB.invoices:DB.quotations;o=arr.filter(function(x){return x.id===id;})[0];if(!o)return;var p=getPartyById(o.partyId);info=(kind==='invoice'?'Invoice ':'Quotation ')+o.number+' - '+(p?p.name:'-')+' - '+fmt(o.grandTotal);}
+ delCtx={kind:kind,id:id,info:info};$$('delTitle').textContent='Delete '+(kind==='item'?'Item':kind==='invoice'?'Invoice':'Quotation');$$('delInfo').textContent=info;$$('delRemarks').value='';openModal('delModal');}
+function doDelete(c){
+ if(c.kind==='item'){DB.items=DB.items.filter(function(x){return x.id!==c.id;});safeSet('bp_items',DB.items);}
+ else if(c.kind==='invoice'){var inv=DB.invoices.filter(function(x){return x.id===c.id;})[0];if(inv){(inv.stockCut||[]).forEach(function(s){var p=getItemById(s.itemId);if(p)p.stock=String((parseFloat(p.stock)||0)+s.qty);});var q=DB.quotations.filter(function(x){return x.id===inv.quotationId;})[0];if(q){q.status='Pending';delete q.invoiceId;}}
+  DB.invoices=DB.invoices.filter(function(x){return x.id!==c.id;});safeSet('bp_items',DB.items);safeSet('bp_quotations',DB.quotations);safeSet('bp_invoices',DB.invoices);}
+ else{DB.quotations=DB.quotations.filter(function(x){return x.id!==c.id;});safeSet('bp_quotations',DB.quotations);}
+ toast('Deleted');}
+$$('btnDelGo').onclick=function(){var r=$$('delRemarks').value.trim();if(!r){toast('Remarks are required','error');return;}
+ var ph=String(DB.settings.compPhone||'').replace(/\D/g,'');if(ph.length<10){toast('Add company phone number in Settings first','error');return;}
+ var msg='*Delete Request*\n'+delCtx.info+'\nRemarks: '+r+'\nBy: '+(localStorage.getItem('bp_session')||'')+'\nTime: '+new Date().toLocaleString();
+ var url='https://wa.me/'+waNum(ph)+'?text='+encodeURIComponent(msg),c=delCtx;
+ var w=window.open(url,'_blank');doDelete(c);closeModal('delModal');if(!w)location.href=url;};
+document.addEventListener('click',function(ev){var t=ev.target,a=t.getAttribute&&t.getAttribute('data-action');if(!a)return;
+ if(a==='convert-quotation'||a==='convert-to-invoice'){ev.stopImmediatePropagation();ev.preventDefault();closeModal('exploreModal');convertQuotation(t.getAttribute('data-id'));}
+ else if(a==='delete-invoice'||a==='delete-quotation'){ev.stopImmediatePropagation();ev.preventDefault();closeModal('exploreModal');askDelete(a==='delete-invoice'?'invoice':'quotation',t.getAttribute('data-id'));}
+},true);
+/* ---------- products ---------- */
+var _rat=window.renderAllTables;
+window.renderAllTables=function(){_rat();var tb=$$('itemTableBody');
+ if(DB.items.length)tb.innerHTML=DB.items.map(function(it){return '<tr><td>'+itTitle(it)+e(it.name)+'</td><td>'+fmt(it.price)+'</td><td>'+e(it.stock)+'</td><td>'+it.gst+'%</td><td><button class="btn btn-outline btn-sm btn-edit-item" data-id="'+it.id+'">✏️ Edit</button> <button class="btn btn-danger btn-sm btn-del-item" data-id="'+it.id+'">Del</button></td></tr>';}).join('');
+ applySearch();};
+function resetItemModal(mode){continueToDoc=0;editingItemId=null;$$('itemModalTitle').textContent=mode==='project'?'Add Project':'Add Item';['iTitle','iName','iPrice','iStock','iDesc','iMoreInfo'].forEach(function(i){$$(i).value='';});$$('iGst').value=18;
+ $$('btnSaveItem').style.display=mode==='project'?'none':'flex';$$('btnSaveAsTemplate').style.display='flex';$$('btnSaveAndContinue').style.display='none';openModal('itemModal');}
+$$('btnNewItem').onclick=function(){resetItemModal('product');};
+$$('btnNewProject').onclick=function(){resetItemModal('project');};
+window.openItemEditModal=function(it){continueToDoc=0;editingItemId=it.id;$$('itemModalTitle').textContent='Edit Item';$$('iTitle').value=it.title||'';$$('iName').value=it.name;$$('iPrice').value=it.price;$$('iStock').value=it.stock||'';$$('iGst').value=it.gst;$$('iDesc').value=it.desc||'';$$('iMoreInfo').value=it.moreInfo||'';
+ $$('btnSaveItem').style.display='flex';$$('btnSaveAsTemplate').style.display='none';$$('btnSaveAndContinue').style.display='none';openModal('itemModal');};
+function readItem(){return {title:$$('iTitle').value.trim(),name:$$('iName').value.trim(),price:parseFloat($$('iPrice').value),stock:$$('iStock').value,gst:$$('iGst').value===''?'0':$$('iGst').value,desc:$$('iDesc').value,moreInfo:$$('iMoreInfo').value};}
+$$('btnSaveItem').onclick=function(){var d=readItem();if(!d.name||isNaN(d.price)){toast('Item name and price are required','error');return;}
+ if(editingItemId){var it=getItemById(editingItemId);if(it){it.title=d.title;it.name=d.name;it.price=d.price;it.stock=d.stock;it.gst=d.gst;it.desc=d.desc;it.moreInfo=d.moreInfo;}}else{d.id=uid();DB.items.push(d);}
+ safeSet('bp_items',DB.items);closeModal('itemModal');editingItemId=null;toast('Item saved');};
+function mkLine(d,qty){var q=qty||1,sub=q*d.price,g=parseFloat(d.gst)||0,ga=sub*g/100;return {itemId:d.itemId||'',title:d.title||'',name:d.name,desc:d.desc||'',moreInfo:d.moreInfo||d.more||'',qty:q,price:d.price,gst:g,sub:sub,gstAmt:ga,total:sub+ga};}
+function saveProject(items){var f=items[0]||{},name=(f.title&&f.title.trim())||f.name||'Project',tot=items.reduce(function(a,i){return a+i.total;},0);
+ var ex=DB.projects.filter(function(p){return p.name.toLowerCase()===name.toLowerCase();})[0];
+ if(ex){ex.items=JSON.parse(JSON.stringify(items));ex.total=tot;ex.date=today();}else DB.projects.push({id:uid(),name:name,items:JSON.parse(JSON.stringify(items)),partyId:'',total:tot,date:today()});
+ safeSet('bp_projects',DB.projects);return name;}
+$$('btnSaveAsTemplate').onclick=function(){var d=readItem();if(!d.name||isNaN(d.price)){toast('Item name and price are required','error');return;}
+ var n=saveProject([mkLine(d,1)]);closeModal('itemModal');toast('Saved in Projects: '+n);};
+/* ---------- add item to document ---------- */
+function clearDi(){['diTitle','diName','diPrice','diStock','diDesc','diMore'].forEach(function(i){$$(i).value='';});$$('diQty').value=1;$$('diGst').value=18;$$('diSave').checked=true;}
+$$('btnAddItemToDoc').onclick=function(){var sel=$$('diSelect');sel.innerHTML='<option value="">-- New Item --</option>'+DB.items.map(function(it){return '<option value="'+it.id+'">'+e(it.name)+'</option>';}).join('');clearDi();openModal('docItemModal');};
+$$('diSelect').onchange=function(){var it=getItemById(this.value);if(it){$$('diTitle').value=it.title||'';$$('diName').value=it.name;$$('diPrice').value=it.price;$$('diStock').value=it.stock||'';$$('diGst').value=it.gst;$$('diDesc').value=it.desc||'';$$('diMore').value=it.moreInfo||'';$$('diSave').checked=false;}else clearDi();};
+function readDi(){return {title:$$('diTitle').value.trim(),name:$$('diName').value.trim(),qty:parseFloat($$('diQty').value),price:parseFloat($$('diPrice').value),gst:parseFloat($$('diGst').value)||0,desc:$$('diDesc').value,moreInfo:$$('diMore').value,stock:$$('diStock').value,itemId:$$('diSelect').value};}
+$$('btnAddDi').onclick=function(){var d=readDi();if(!d.name||!d.qty||isNaN(d.price)){toast('Enter item name, quantity and price','error');return;}
+ var item=d.itemId?getItemById(d.itemId):null;
+ if(!item&&$$('diSave').checked){item={id:uid(),title:d.title,name:d.name,price:d.price,stock:d.stock,gst:String(d.gst),desc:d.desc,moreInfo:d.moreInfo};DB.items.push(item);safeSet('bp_items',DB.items);}
+ d.itemId=item?item.id:'';currentDocItems.push(mkLine(d,d.qty));renderDocItems();closeModal('docItemModal');};
+$$('btnDiProject').onclick=function(){var d=readDi();if(!d.name||!d.qty||isNaN(d.price)){toast('Enter item name, quantity and price','error');return;}
+ var l=mkLine(d,d.qty);currentDocItems.push(l);renderDocItems();var n=saveProject([l]);closeModal('docItemModal');toast('Saved in Projects: '+n);};
+window.renderDocItems=function(){var tb=$$('docItemsBody');
+ if(!currentDocItems.length)tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:1rem">No items added</td></tr>';
+ else tb.innerHTML=currentDocItems.map(function(it,i){return '<tr><td>'+itTitle(it)+'<b>'+e(it.name)+'</b>'+itDetails(it)+'</td><td>'+it.qty+'</td><td>'+fmt(it.price)+'</td><td>'+it.gst+'%</td><td>'+fmt(it.total)+'</td><td><button class="btn btn-danger btn-sm btn-rm-di" data-i="'+i+'">X</button></td></tr>';}).join('');
+ calcDocTotals();};
+$$('btnPreviewDoc').onclick=function(){if(!currentDocItems.length){toast('Add items first','error');return;}var n=saveProject(currentDocItems);toast('Saved in Projects: '+n);};
+$$('btnShipSame').onclick=function(){var p=getPartyById($$('docParty').value);$$('docShip').value=p?'Name: '+p.name+'\nAddress: '+(p.addr||'')+'\nMobile: '+(p.phone||'')+'\nRemarks: ':SHIPTPL;};
+$$('optShip').addEventListener('change',function(){if(this.checked&&!$$('docShip').value.trim())$$('docShip').value=SHIPTPL;});
+/* ---------- projects ---------- */
+window.renderTemplates=function(){var tb=$$('tempTableBody');
+ tb.innerHTML=DB.projects.length?DB.projects.slice().reverse().map(function(p){return '<tr><td><strong>'+e(p.name)+'</strong></td><td>'+p.items.length+'</td><td>'+fmt(p.total)+'</td><td>'+e(p.date)+'</td><td><button class="btn btn-primary btn-sm btn-open-proj" data-id="'+p.id+'">Open</button> <button class="btn btn-danger btn-sm btn-del-temp" data-id="'+p.id+'">Del</button></td></tr>';}).join(''):'<tr><td colspan="5" style="text-align:center;padding:1rem">No projects</td></tr>';applySearch();};
+function partyOpts(){return '<option value="">-- Select Party --</option>'+DB.parties.map(function(p){return '<option value="'+p.id+'">'+e(p.name)+'</option>';}).join('');}
+function fillPartySel(id,val){var s=$$(id);if(!s)return;var v=val!==undefined?val:s.value;s.innerHTML=partyOpts();s.value=v;}
+function openProject(id){var p=DB.projects.filter(function(x){return x.id===id;})[0];if(!p)return;projCtx=id;$$('projTitle').textContent=p.name;
+ $$('projItems').innerHTML=p.items.map(function(it){return '<div style="padding:.4rem 0;border-bottom:1px solid var(--border)">'+itTitle(it)+'<b>'+e(it.name)+'</b> × '+it.qty+' — '+fmt(it.total)+itDetails(it)+'</div>';}).join('')+'<div style="margin-top:.5rem;font-weight:700">Total: '+fmt(p.total)+'</div>';
+ fillPartySel('projParty',p.partyId||'');openModal('projModal');}
+$$('btnProjAddParty').onclick=function(){pendSel={id:'projParty',n:DB.parties.length};$$('btnNewParty').onclick();};
+$$('btnProjQuo').onclick=function(){var p=DB.projects.filter(function(x){return x.id===projCtx;})[0];if(!p)return;var pid=$$('projParty').value;if(!pid){toast('Select or add a party first','error');return;}
+ p.partyId=pid;safeSet('bp_projects',DB.projects);closeModal('projModal');startDocForm('quotation');$$('docParty').value=pid;currentDocItems=JSON.parse(JSON.stringify(p.items));renderDocItems();};
+function useProject(id){var p=DB.projects.filter(function(x){return x.id===id;})[0];if(!p)return;p.items.forEach(function(it){currentDocItems.push(JSON.parse(JSON.stringify(it)));});renderDocItems();closeModal('pickTempModal');}
+$$('btnPickTemplate').onclick=function(){var tb=$$('pickTempBody');
+ tb.innerHTML=DB.projects.length?DB.projects.map(function(p){return '<tr><td><strong>'+e(p.name)+'</strong></td><td>'+p.items.length+' items</td><td><button class="btn btn-primary btn-sm btn-use-temp" data-id="'+p.id+'">Use</button></td></tr>';}).join(''):'<tr><td colspan="3" style="text-align:center;padding:1rem">No projects saved yet.</td></tr>';openModal('pickTempModal');};
+/* ---------- delegated row buttons ---------- */
+document.addEventListener('click',function(ev){var b=ev.target.closest&&ev.target.closest('button');if(!b)return;var id=b.getAttribute('data-id'),c=b.classList;
+ if(c.contains('btn-edit-item')){var it=getItemById(id);if(it)openItemEditModal(it);}
+ else if(c.contains('btn-del-item'))askDelete('item',id);
+ else if(c.contains('btn-use-quo')){closeModal('pickQuoModal');convertQuotation(id);}
+ else if(c.contains('btn-use-temp'))useProject(id);
+ else if(c.contains('btn-open-proj'))openProject(id);
+ else if(c.contains('btn-del-temp')){if(confirm('Delete this project?')){DB.projects=DB.projects.filter(function(p){return p.id!==id;});safeSet('bp_projects',DB.projects);toast('Project deleted');}}
+ else if(c.contains('btn-del-visit')){if(confirm('Delete this visit?')){DB.visits=DB.visits.filter(function(v){return v.id!==id;});safeSet('bp_visits',DB.visits);}}
+});
+/* ---------- search ---------- */
+function applySearch(){var L=document.querySelectorAll('.srch');for(var i=0;i<L.length;i++){var inp=L[i],q=inp.value.trim().toLowerCase(),host=$$(inp.getAttribute('data-t'));if(!host)continue;var rows=host.querySelectorAll(inp.getAttribute('data-rows')||'tr');for(var j=0;j<rows.length;j++){rows[j].style.display=!q||rows[j].textContent.toLowerCase().indexOf(q)>=0?'':'none';}}}
+document.addEventListener('input',function(ev){if(ev.target.classList&&ev.target.classList.contains('srch'))applySearch();});
+/* ---------- contacts import ---------- */
+function normPhone(t){var d=String(t||'').replace(/[^\d+]/g,'');d=d.replace(/^\+?91(?=\d{10}$)/,'').replace(/^0(?=\d{10}$)/,'');return d.replace(/\D/g,'');}
+function addContacts(list){var n=0,last='';list.forEach(function(c){var name=String((c.name&&c.name[0])||'').trim(),ph=normPhone(c.tel&&c.tel[0]);if(!name||!ph)return;if(DB.parties.some(function(p){return normPhone(p.phone)===ph;}))return;var id=uid();DB.parties.push({id:id,name:name,phone:ph,email:'',addr:''});last=id;n++;});
+ closeModal('partyModal');if(n){safeSet('bp_parties',DB.parties);toast(n+' contact(s) imported');}else toast('No new contacts imported','error');
+ if(n&&continueToDoc===1){fillPartySel('docParty',last);continueToDoc=0;}}
+$$('btnImportContact').onclick=function(){if(navigator.contacts&&navigator.contacts.select){navigator.contacts.select(['name','tel'],{multiple:true}).then(addContacts).catch(function(){});}else{toast('Contact picker not supported here. Choose a .vcf file','error');$$('vcfFile').click();}};
+$$('vcfFile').onchange=function(ev){var f=ev.target.files&&ev.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){var out=[];String(r.result).split(/BEGIN:VCARD/i).forEach(function(card){var fn=card.match(/^FN[^:]*:(.+)$/mi),tel=card.match(/^TEL[^:]*:(.+)$/mi);if(fn&&tel)out.push({name:[fn[1].trim()],tel:[tel[1].trim()]});});addContacts(out);ev.target.value='';};r.readAsText(f);};
+/* ---------- visits ---------- */
+$$('btnVAddParty').onclick=function(){pendSel={id:'vParty',n:DB.parties.length};$$('btnNewParty').onclick();};
+$$('btnSaveVisit').onclick=function(){var pid=$$('vParty').value,d=$$('vDate').value,t=$$('vTime').value;if(!pid||!d||!t){toast('Select party, date and time','error');return;}
+ DB.visits.push({id:uid(),partyId:pid,remarks:$$('vRemarks').value.trim(),date:d,time:t});safeSet('bp_visits',DB.visits);$$('vRemarks').value='';toast('Visit scheduled');};
+function renderVisits(){var L=DB.visits.slice().sort(function(a,b){return (a.date+a.time)<(b.date+b.time)?-1:1;});
+ $$('visitList').innerHTML=L.length?L.map(function(v){var p=getPartyById(v.partyId)||{name:'-',phone:''},ph=String(p.phone||'').replace(/\D/g,'');
+  return '<div class="vrow" style="flex-wrap:wrap"><span class="nm">'+e(p.name)+'</span><a class="btn btn-info btn-sm" href="tel:'+ph+'">📞 Call</a><a class="btn btn-success btn-sm" target="_blank" href="https://wa.me/'+waNum(ph)+'">💬 WhatsApp</a><span class="vt">⏰ '+fmtT(v.time)+'<br>📅 '+e(v.date)+'</span><button class="btn btn-danger btn-sm btn-del-visit" data-id="'+v.id+'">X</button>'+(v.remarks?'<div class="det" style="flex:1 1 100%">'+e(v.remarks)+'</div>':'')+'</div>';}).join(''):'<p style="text-align:center;padding:1rem">No visits scheduled</p>';}
+/* ---------- documents (IndexedDB) ---------- */
+var idb=null;
+function idbOpen(){return new Promise(function(res,rej){if(idb)return res(idb);var r=indexedDB.open('bp_docs',1);r.onupgradeneeded=function(){var st=r.result.createObjectStore('files',{keyPath:'id'});st.createIndex('folder','folderId');};r.onsuccess=function(){idb=r.result;res(idb);};r.onerror=function(){rej(r.error);};});}
+function idbDo(mode,fn){return idbOpen().then(function(d){return new Promise(function(res,rej){var tx=d.transaction('files',mode),rq=fn(tx.objectStore('files'));tx.oncomplete=function(){res(rq?rq.result:null);};tx.onerror=function(){rej(tx.error);};});});}
+var fmtSize=function(n){return n>1048576?(n/1048576).toFixed(1)+' MB':Math.max(1,Math.round(n/1024))+' KB';};
+function renderFolders(){$$('folderList').innerHTML=DB.folders.length?DB.folders.map(function(f){return '<div class="frow"><span class="nm">📁 '+e(f.name)+'</span><button class="btn btn-primary btn-sm" data-fo="'+f.id+'">Open</button><button class="btn btn-danger btn-sm" data-fd="'+f.id+'">Del</button></div>';}).join(''):'<p style="text-align:center;padding:1rem">No folders</p>';}
+function renderFiles(){if(!curFolder)return;idbDo('readonly',function(st){return st.index('folder').getAll(curFolder);}).then(function(L){L=L||[];$$('fileList').innerHTML=L.length?L.map(function(f){return '<div class="fl"><span class="nm">'+(/^image\//.test(f.type)?'🖼️ ':/pdf/.test(f.type)?'📕 ':/sheet|excel|csv/.test(f.type)||/\.xlsx?$/.test(f.name)?'📊 ':'📄 ')+e(f.name)+' <small>('+fmtSize(f.size)+')</small></span><button class="btn btn-info btn-sm" data-fv="'+f.id+'">View</button><button class="btn btn-outline btn-sm" data-fdl="'+f.id+'">Download</button><button class="btn btn-success btn-sm" data-fs="'+f.id+'">Share</button><button class="btn btn-danger btn-sm" data-fx="'+f.id+'">Del</button></div>';}).join(''):'<p style="text-align:center;padding:1rem">No files</p>';}).catch(function(){toast('Storage unavailable','error');});}
+function getFile(id){return idbDo('readonly',function(st){return st.get(id);});}
+function dl(f){var a=document.createElement('a'),u=URL.createObjectURL(f.blob);a.href=u;a.download=f.name;document.body.appendChild(a);a.click();setTimeout(function(){a.remove();URL.revokeObjectURL(u);},1500);}
+$$('btnNewFolder').onclick=function(){var n=$$('fName').value.trim();if(!n){toast('Enter folder name','error');return;}DB.folders.push({id:uid(),name:n,date:today()});safeSet('bp_folders',DB.folders);$$('fName').value='';toast('Folder created');};
+$$('btnFvClose').onclick=function(){curFolder=null;$$('folderView').style.display='none';};
+$$('btnUpload').onclick=function(){$$('fileUp').click();};
+$$('fileUp').onchange=function(ev){var fl=Array.prototype.slice.call(ev.target.files||[]);if(!fl.length||!curFolder)return;var fid=curFolder;
+ Promise.all(fl.map(function(f){return idbDo('readwrite',function(st){return st.put({id:uid(),folderId:fid,name:f.name,type:f.type||'',size:f.size,date:today(),blob:f});});})).then(function(){toast(fl.length+' file(s) uploaded');ev.target.value='';renderFiles();if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}).catch(function(){toast('Upload failed','error');});};
+document.addEventListener('click',function(ev){var b=ev.target.closest&&ev.target.closest('button');if(!b)return;
+ var fo=b.getAttribute('data-fo'),fd=b.getAttribute('data-fd'),fv=b.getAttribute('data-fv'),fdl=b.getAttribute('data-fdl'),fs=b.getAttribute('data-fs'),fx=b.getAttribute('data-fx'),nid=b.getAttribute('data-note'),ad=b.getAttribute('data-apd');
+ if(fo){curFolder=fo;var f=DB.folders.filter(function(x){return x.id===fo;})[0];$$('fvTitle').textContent='📁 '+(f?f.name:'');$$('folderView').style.display='block';renderFiles();$$('folderView').scrollIntoView();}
+ else if(fd){if(confirm('Delete this folder and all its files?')){idbDo('readonly',function(st){return st.index('folder').getAllKeys(fd);}).then(function(ks){return Promise.all((ks||[]).map(function(k){return idbDo('readwrite',function(st){return st.delete(k);});}));}).then(function(){DB.folders=DB.folders.filter(function(x){return x.id!==fd;});safeSet('bp_folders',DB.folders);if(curFolder===fd){curFolder=null;$$('folderView').style.display='none';}toast('Folder deleted');});}}
+ else if(fv){getFile(fv).then(function(f){if(!f)return;if(/^image\//.test(f.type)){$$('imgTitle').textContent=f.name;$$('imgView').src=URL.createObjectURL(f.blob);openModal('imgModal');}else{var u=URL.createObjectURL(f.blob),w=window.open(u,'_blank');if(!w)dl(f);}});}
+ else if(fdl){getFile(fdl).then(function(f){if(f)dl(f);});}
+ else if(fs){getFile(fs).then(function(f){if(!f)return;var file=new File([f.blob],f.name,{type:f.type});if(navigator.canShare&&navigator.canShare({files:[file]}))navigator.share({files:[file],title:f.name}).catch(function(){});else{dl(f);toast('Sharing not supported here. File downloaded');}});}
+ else if(fx){if(confirm('Delete this file?'))idbDo('readwrite',function(st){return st.delete(fx);}).then(renderFiles);}
+ else if(nid){var n=DB.notes.filter(function(x){return x.id===nid;})[0];if(n){editNote=nid;$$('ntTitle').value=n.title;$$('ntText').value=n.text;$$('btnDelNote').style.display='block';openModal('noteModal');}}
+ else if(ad){if(confirm('Delete this appointment?')){DB.appts=DB.appts.filter(function(x){return x.id!==ad;});safeSet('bp_appts',DB.appts);}}
+});
+/* tabs inside documents */
+document.addEventListener('click',function(ev){var t=ev.target.getAttribute&&ev.target.getAttribute('data-dt');if(!t)return;var tabs=document.querySelectorAll('[data-dt]');for(var i=0;i<tabs.length;i++){tabs[i].classList.toggle('active',tabs[i]===ev.target);$$(tabs[i].getAttribute('data-dt')).style.display=tabs[i]===ev.target?'block':'none';}});
+/* notes */
+function renderNotes(){$$('noteList').innerHTML=DB.notes.length?DB.notes.slice().reverse().map(function(n){return '<div class="nrow"><span class="nm">📝 '+e(n.title||'Untitled')+'<div class="det">'+e((n.text||'').slice(0,80))+'</div></span><small>'+e(n.date)+'</small><button class="btn btn-outline btn-sm" data-note="'+n.id+'">Open</button></div>';}).join(''):'<p style="text-align:center;padding:1rem">No notes</p>';}
+$$('btnNewNote').onclick=function(){editNote=null;$$('ntTitle').value='';$$('ntText').value='';$$('btnDelNote').style.display='none';openModal('noteModal');};
+$$('btnSaveNote').onclick=function(){var t=$$('ntTitle').value.trim(),x=$$('ntText').value;if(!t&&!x.trim()){toast('Write something first','error');return;}
+ if(editNote){var n=DB.notes.filter(function(q){return q.id===editNote;})[0];if(n){n.title=t;n.text=x;n.date=today();}}else DB.notes.push({id:uid(),title:t,text:x,date:today()});
+ safeSet('bp_notes',DB.notes);closeModal('noteModal');toast('Note saved');};
+$$('btnDelNote').onclick=function(){if(editNote&&confirm('Delete this note?')){DB.notes=DB.notes.filter(function(q){return q.id!==editNote;});safeSet('bp_notes',DB.notes);closeModal('noteModal');}};
+/* appointments */
+$$('btnSaveAppt').onclick=function(){var t=$$('apTitle').value.trim(),d=$$('apDate').value;if(!t||!d){toast('Enter title and date','error');return;}DB.appts.push({id:uid(),title:t,date:d,time:$$('apTime').value,notes:$$('apNotes').value.trim()});safeSet('bp_appts',DB.appts);$$('apTitle').value=$$('apNotes').value='';toast('Appointment saved');};
+function renderAppts(){var L=DB.appts.slice().sort(function(a,b){return (a.date+(a.time||''))<(b.date+(b.time||''))?-1:1;});$$('apptList').innerHTML=L.length?L.map(function(a){return '<div class="arow"><span class="nm">📅 '+e(a.title)+(a.notes?'<div class="det">'+e(a.notes)+'</div>':'')+'</span><span class="vt">'+e(a.date)+'<br>'+fmtT(a.time)+'</span><button class="btn btn-danger btn-sm" data-apd="'+a.id+'">X</button></div>';}).join(''):'<p style="text-align:center;padding:1rem">No appointments</p>';}
+/* ---------- signature ---------- */
+var sc=$$('signCanvas'),sx=sc.getContext('2d'),drawing=false,inked=false;sx.lineWidth=2.5;sx.lineCap='round';sx.strokeStyle='#111';
+function spos(ev){var r=sc.getBoundingClientRect();return {x:(ev.clientX-r.left)*sc.width/r.width,y:(ev.clientY-r.top)*sc.height/r.height};}
+sc.addEventListener('pointerdown',function(ev){drawing=true;inked=true;var p=spos(ev);sx.beginPath();sx.moveTo(p.x,p.y);sx.lineTo(p.x+.1,p.y+.1);sx.stroke();try{sc.setPointerCapture(ev.pointerId);}catch(x){}ev.preventDefault();});
+sc.addEventListener('pointermove',function(ev){if(!drawing)return;var p=spos(ev);sx.lineTo(p.x,p.y);sx.stroke();});
+['pointerup','pointercancel'].forEach(function(n){sc.addEventListener(n,function(){drawing=false;});});
+function renderSign(){$$('signPrev').innerHTML=DB.settings.sign?'<img src="'+DB.settings.sign+'" style="max-height:60px;border:1px solid var(--border);padding:2px;background:#fff">':'';}
+$$('btnSignClear').onclick=function(){sx.clearRect(0,0,sc.width,sc.height);inked=false;};
+$$('btnSignSave').onclick=function(){if(!inked){toast('Draw signature first','error');return;}DB.settings.sign=sc.toDataURL('image/png');safeSet('bp_settings',DB.settings);renderSign();toast('Signature saved');};
+$$('btnSignUp').onclick=function(){$$('signFile').click();};
+$$('signFile').onchange=function(ev){var fl=ev.target.files&&ev.target.files[0];if(!fl)return;var r=new FileReader();r.onload=function(x){var im=new Image();im.onload=function(){var sc2=Math.min(1,400/im.width,150/im.height),c=document.createElement('canvas');c.width=Math.max(1,im.width*sc2);c.height=Math.max(1,im.height*sc2);c.getContext('2d').drawImage(im,0,0,c.width,c.height);DB.settings.sign=c.toDataURL('image/png');safeSet('bp_settings',DB.settings);renderSign();toast('Signature saved');ev.target.value='';};im.src=x.target.result;};r.readAsDataURL(fl);};
+$$('btnSignRm').onclick=function(){delete DB.settings.sign;safeSet('bp_settings',DB.settings);renderSign();};
+/* ---------- header / footer ---------- */
+var tb=$$('topBar');tb.appendChild($$('mobileToggle'));var cb=document.createElement('button');cb.type='button';cb.className='calc-btn';cb.id='calcBtn';cb.innerHTML='&#129518; Calculator';tb.appendChild(cb);tb.appendChild($$('backBtn'));
+cb.onclick=function(){navigateTo('calculator');};
+document.querySelectorAll('#botBar [data-go]').forEach(function(b){b.onclick=function(){navigateTo(b.getAttribute('data-go'));};});
+document.addEventListener('click',function(ev){if(!ev.target.closest('#sidebar')&&!ev.target.closest('#mobileToggle'))$$('sidebar').classList.remove('open');});
+/* ---------- backup / restore ---------- */
+var KEYS=['parties','items','invoices','quotations','templates','projects','purchases','payments','visits','folders','notes','appts'];
+$$('restoreFile').onchange=function(ev){var f=ev.target.files&&ev.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(x){try{var d=JSON.parse(x.target.result);if(!confirm('Replace current data?'))return;KEYS.forEach(function(k){DB[k]=Array.isArray(d[k])?d[k]:[];safeSet('bp_'+k,DB[k]);});DB.settings=d.settings&&!Array.isArray(d.settings)?d.settings:{};safeSet('bp_settings',DB.settings);initApp();toast('Data restored');}catch(err){toast('Invalid file','error');}};r.readAsText(f);};
+/* ---------- refresh hook ---------- */
+function v3Refresh(){ensureDB();
+ if(pendSel&&DB.parties.length>pendSel.n){var last=DB.parties[DB.parties.length-1].id;fillPartySel(pendSel.id,last);pendSel=null;}
+ fillPartySel('vParty');if(projCtx&&$$('projModal').classList.contains('active'))fillPartySel('projParty');
+ if(!$$('vDate').value)$$('vDate').value=today();if(!$$('apDate').value)$$('apDate').value=today();
+ renderVisits();renderFolders();renderNotes();renderAppts();renderSign();applySearch();}
+var _ia3=window.initApp;window.initApp=function(){_ia3();ensureDB();v3Refresh();};
+window.fyLabel=fyLabel;window.peekNum=peekNum;
+upd();
+
+})();
+</script>
+
+</body>
+</html>
